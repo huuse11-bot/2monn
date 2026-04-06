@@ -1,0 +1,339 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>2問ズレ診断</title>
+  <style>
+    :root{
+      --bg:#f6f7fb;
+      --card:#ffffff;
+      --text:#1f2937;
+      --sub:#6b7280;
+      --line:#e5e7eb;
+      --accent:#111827;
+    }
+    *{box-sizing:border-box}
+    body{
+      margin:0;
+      font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Hiragino Sans","Noto Sans JP",sans-serif;
+      background:var(--bg);
+      color:var(--text);
+      line-height:1.65;
+    }
+    .wrap{
+      max-width:480px;
+      margin:0 auto;
+      padding:20px 14px 40px;
+    }
+    .card{
+      background:var(--card);
+      border:1px solid var(--line);
+      border-radius:18px;
+      padding:18px 16px;
+      box-shadow:0 4px 18px rgba(0,0,0,.04);
+      margin-bottom:14px;
+    }
+    h1{
+      font-size:1.4rem;
+      margin:0 0 8px;
+      line-height:1.35;
+    }
+    .lead{
+      color:var(--sub);
+      font-size:.96rem;
+      margin:0;
+    }
+    h2{
+      font-size:1rem;
+      margin:0 0 10px;
+    }
+    .q{
+      font-size:1.03rem;
+      font-weight:700;
+      margin:0 0 14px;
+    }
+    .valueRow{
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:12px;
+      margin-bottom:8px;
+    }
+    .valueLabel{
+      color:var(--sub);
+      font-size:.92rem;
+    }
+    .value{
+      min-width:42px;
+      text-align:center;
+      font-weight:800;
+      font-size:1.1rem;
+      padding:5px 10px;
+      border-radius:999px;
+      background:#f3f4f6;
+    }
+    input[type="range"]{
+      width:100%;
+      margin:10px 0 4px;
+    }
+    .scale{
+      display:flex;
+      justify-content:space-between;
+      color:var(--sub);
+      font-size:.78rem;
+      margin-top:4px;
+    }
+    .btn{
+      width:100%;
+      border:none;
+      border-radius:14px;
+      padding:14px 16px;
+      font-size:1rem;
+      font-weight:700;
+      background:var(--accent);
+      color:#fff;
+      cursor:pointer;
+    }
+    .btn.secondary{
+      background:#fff;
+      color:var(--text);
+      border:1px solid var(--line);
+    }
+    .resultTitle{
+      font-size:1.1rem;
+      font-weight:800;
+      margin:0 0 12px;
+    }
+    .box{
+      background:#f9fafb;
+      border:1px solid var(--line);
+      border-radius:14px;
+      padding:12px 13px;
+      margin-bottom:10px;
+    }
+    .label{
+      font-size:.82rem;
+      color:var(--sub);
+      margin-bottom:4px;
+    }
+    .copyArea{
+      white-space:pre-wrap;
+      font-size:.95rem;
+    }
+    .muted{
+      color:var(--sub);
+      font-size:.86rem;
+    }
+    .actions{
+      display:grid;
+      grid-template-columns:1fr 1fr;
+      gap:10px;
+      margin-top:10px;
+    }
+    .footer{
+      text-align:center;
+      color:var(--sub);
+      font-size:.8rem;
+      margin-top:8px;
+    }
+    .hidden{display:none}
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <div class="card">
+      <h1>あなたの「ブレ」の正体、2問で出す</h1>
+      <p class="lead">説明は最小。まず答えるだけでOK。<br>0＝まったく当てはまらない / 5＝かなり当てはまる</p>
+    </div>
+
+    <div class="card">
+      <h2>Q1</h2>
+      <p class="q">納得しないと動きたくない</p>
+      <div class="valueRow">
+        <div class="valueLabel">本音・素質寄り</div>
+        <div class="value" id="q1Val">3</div>
+      </div>
+      <input id="q1" type="range" min="0" max="5" step="1" value="3" />
+      <div class="scale"><span>0</span><span>5</span></div>
+    </div>
+
+    <div class="card">
+      <h2>Q2</h2>
+      <p class="q">納得してなくても、とりあえず動くことが多い</p>
+      <div class="valueRow">
+        <div class="valueLabel">現実・適応寄り</div>
+        <div class="value" id="q2Val">3</div>
+      </div>
+      <input id="q2" type="range" min="0" max="5" step="1" value="3" />
+      <div class="scale"><span>0</span><span>5</span></div>
+    </div>
+
+    <div class="card">
+      <button class="btn" id="diagnoseBtn">結果を見る</button>
+    </div>
+
+    <div class="card hidden" id="resultCard">
+      <div class="resultTitle">診断結果</div>
+
+      <div class="box">
+        <div class="label">タイプ</div>
+        <div id="typeText"></div>
+      </div>
+
+      <div class="box">
+        <div class="label">構造</div>
+        <div id="structureText"></div>
+      </div>
+
+      <div class="box">
+        <div class="label">現象</div>
+        <div id="phenomenonText"></div>
+      </div>
+
+      <div class="box">
+        <div class="label">一言</div>
+        <div id="oneLineText"></div>
+      </div>
+
+      <div class="box">
+        <div class="label">AIに貼る文</div>
+        <div class="copyArea" id="copyText"></div>
+      </div>
+
+      <div class="actions">
+        <button class="btn" id="copyBtn">コピー</button>
+        <button class="btn secondary" id="resetBtn">やり直す</button>
+      </div>
+      <div class="footer" id="copyStatus"></div>
+    </div>
+  </div>
+
+  <script>
+    const q1 = document.getElementById('q1');
+    const q2 = document.getElementById('q2');
+    const q1Val = document.getElementById('q1Val');
+    const q2Val = document.getElementById('q2Val');
+    const resultCard = document.getElementById('resultCard');
+    const typeText = document.getElementById('typeText');
+    const structureText = document.getElementById('structureText');
+    const phenomenonText = document.getElementById('phenomenonText');
+    const oneLineText = document.getElementById('oneLineText');
+    const copyText = document.getElementById('copyText');
+    const copyStatus = document.getElementById('copyStatus');
+
+    function syncValue(slider, label){
+      label.textContent = slider.value;
+    }
+
+    q1.addEventListener('input', ()=>syncValue(q1, q1Val));
+    q2.addEventListener('input', ()=>syncValue(q2, q2Val));
+
+    function diagnose(a, b){
+      // a = 素質、本音 / b = 適応、現実
+      let type = "";
+      let structure = "";
+      let phenomenon = "";
+      let oneLine = "";
+
+      if (a >= 4 && b >= 4){
+        type = "整合ズレ型";
+        structure = "本音では納得してから動きたいのに、現実では納得していなくても動いている状態。";
+        phenomenon = "優先順位がブレやすい / やる気に波が出やすい / 動いているのに内部では引っかかりが残る。";
+        oneLine = "無理して動いているからブレる。";
+      } else if (a >= 4 && b <= 2){
+        type = "納得重視型";
+        structure = "本音でも現実でも、納得が動くための条件になっている状態。";
+        phenomenon = "動き出しは遅め / 理解できると強い / ハマると深く続く。";
+        oneLine = "遅いのではなく精度型。";
+      } else if (a <= 2 && b >= 4){
+        type = "行動優先型";
+        structure = "納得へのこだわりは低めで、まず動いてから考える現実対応型。";
+        phenomenon = "初動が早い / 後から修正が多い / とりあえず前に進みやすい。";
+        oneLine = "雑ではなくスピード型。";
+      } else if (a <= 2 && b <= 2){
+        type = "流動型";
+        structure = "納得への強いこだわりが少なく、状況に応じて軽く動ける状態。";
+        phenomenon = "気分や場面で動き方が変わる / 固定ルールに縛られにくい。";
+        oneLine = "軽さが強み。";
+      } else {
+        const diff = a - b;
+        if (diff >= 2){
+          type = "納得寄りバランス型";
+          structure = "本音の納得重視がやや強く、現実では多少合わせて動いている状態。";
+          phenomenon = "止まりすぎではないが、納得不足だと微妙に消耗しやすい。";
+          oneLine = "動けているけど、内部では理由が欲しい。";
+        } else if (diff <= -2){
+          type = "適応寄りバランス型";
+          structure = "現実対応がやや強く、多少の違和感があっても進める状態。";
+          phenomenon = "周囲や流れには乗れるが、本音の輪郭が薄くなりやすい。";
+          oneLine = "進める力はあるが、本音の確認も必要。";
+        } else {
+          type = "中間バランス型";
+          structure = "納得重視と現実対応の両方をある程度使っている状態。";
+          phenomenon = "大きな偏りは少ない / 場面によって動き方を変えやすい。";
+          oneLine = "迷いではなく調整。";
+        }
+      }
+
+      const prompt =
+`以下は2問の簡易診断結果です。
+Q1（納得しないと動きたくない）: ${a}
+Q2（納得してなくても、とりあえず動くことが多い）: ${b}
+
+【タイプ】
+${type}
+
+【構造】
+${structure}
+
+【現象】
+${phenomenon}
+
+【一言】
+${oneLine}
+
+この結果をもとに、
+「なぜブレるのか」「どうすれば動きやすくなるか」を
+本質 → 構造 → 具体例 → 応用
+で整理してください。`;
+
+      return { type, structure, phenomenon, oneLine, prompt };
+    }
+
+    document.getElementById('diagnoseBtn').addEventListener('click', () => {
+      const a = Number(q1.value);
+      const b = Number(q2.value);
+      const result = diagnose(a, b);
+
+      typeText.textContent = result.type;
+      structureText.textContent = result.structure;
+      phenomenonText.textContent = result.phenomenon;
+      oneLineText.textContent = result.oneLine;
+      copyText.textContent = result.prompt;
+      copyStatus.textContent = "";
+      resultCard.classList.remove('hidden');
+      resultCard.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    });
+
+    document.getElementById('copyBtn').addEventListener('click', async () => {
+      try{
+        await navigator.clipboard.writeText(copyText.textContent);
+        copyStatus.textContent = "コピーしました。";
+      }catch(e){
+        copyStatus.textContent = "コピーに失敗しました。手動で長押しコピーしてください。";
+      }
+    });
+
+    document.getElementById('resetBtn').addEventListener('click', () => {
+      q1.value = 3;
+      q2.value = 3;
+      q1Val.textContent = "3";
+      q2Val.textContent = "3";
+      resultCard.classList.add('hidden');
+      copyStatus.textContent = "";
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    });
+  </script>
+</body>
+</html>
