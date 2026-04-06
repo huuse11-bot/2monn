@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>2問ズレ診断</title>
+  <title>2問＋3問 拡張診断</title>
   <style>
     :root{
       --bg:#f6f7fb;
@@ -22,7 +22,7 @@
       line-height:1.65;
     }
     .wrap{
-      max-width:480px;
+      max-width:520px;
       margin:0 auto;
       padding:20px 14px 40px;
     }
@@ -39,14 +39,14 @@
       margin:0 0 8px;
       line-height:1.35;
     }
+    h2{
+      font-size:1rem;
+      margin:0 0 10px;
+    }
     .lead{
       color:var(--sub);
       font-size:.96rem;
       margin:0;
-    }
-    h2{
-      font-size:1rem;
-      margin:0 0 10px;
     }
     .q{
       font-size:1.03rem;
@@ -100,6 +100,17 @@
       color:var(--text);
       border:1px solid var(--line);
     }
+    .btn.ghost{
+      background:#f9fafb;
+      color:var(--text);
+      border:1px solid var(--line);
+    }
+    .actions{
+      display:grid;
+      grid-template-columns:1fr 1fr;
+      gap:10px;
+      margin-top:10px;
+    }
     .resultTitle{
       font-size:1.1rem;
       font-weight:800;
@@ -125,17 +136,14 @@
       color:var(--sub);
       font-size:.86rem;
     }
-    .actions{
-      display:grid;
-      grid-template-columns:1fr 1fr;
-      gap:10px;
-      margin-top:10px;
-    }
-    .footer{
-      text-align:center;
-      color:var(--sub);
+    .pill{
+      display:inline-block;
       font-size:.8rem;
-      margin-top:8px;
+      color:#374151;
+      background:#f3f4f6;
+      border-radius:999px;
+      padding:5px 10px;
+      margin-bottom:10px;
     }
     .hidden{display:none}
   </style>
@@ -143,8 +151,8 @@
 <body>
   <div class="wrap">
     <div class="card">
-      <h1>あなたの「ブレ」の正体、2問で出す</h1>
-      <p class="lead">説明は最小。まず答えるだけでOK。<br>0＝まったく当てはまらない / 5＝かなり当てはまる</p>
+      <h1>あなたの「ブレ」の正体、まず2問で出す</h1>
+      <p class="lead">0＝まったく当てはまらない / 5＝かなり当てはまる<br>先に2問で出して、必要ならあとで+3問で精度を上げる。</p>
     </div>
 
     <div class="card">
@@ -170,7 +178,7 @@
     </div>
 
     <div class="card">
-      <button class="btn" id="diagnoseBtn">結果を見る</button>
+      <button class="btn" id="diagnoseBtn">まず2問で結果を見る</button>
     </div>
 
     <div class="card hidden" id="resultCard">
@@ -196,24 +204,71 @@
         <div id="oneLineText"></div>
       </div>
 
+      <div class="box hidden" id="advancedSummaryBox">
+        <div class="label">＋3問で見えた補足</div>
+        <div id="advancedSummaryText"></div>
+      </div>
+
       <div class="box">
         <div class="label">AIに貼る文</div>
         <div class="copyArea" id="copyText"></div>
+      </div>
+
+      <button class="btn ghost" id="showMoreBtn">▶ もっと正確に出す（+3問）</button>
+
+      <div class="hidden" id="moreQuestions">
+        <div class="card" style="margin:14px 0 0; padding:0; box-shadow:none; border:none;">
+          <div class="pill">追加の3問</div>
+
+          <h2>Q3</h2>
+          <p class="q">周りの反応や空気が気になる</p>
+          <div class="valueRow">
+            <div class="valueLabel">空気</div>
+            <div class="value" id="q3Val">3</div>
+          </div>
+          <input id="q3" type="range" min="0" max="5" step="1" value="3" />
+          <div class="scale"><span>0</span><span>5</span></div>
+
+          <h2 style="margin-top:18px;">Q4</h2>
+          <p class="q">結果が出ないと落ち着かない</p>
+          <div class="valueRow">
+            <div class="valueLabel">成果</div>
+            <div class="value" id="q4Val">3</div>
+          </div>
+          <input id="q4" type="range" min="0" max="5" step="1" value="3" />
+          <div class="scale"><span>0</span><span>5</span></div>
+
+          <h2 style="margin-top:18px;">Q5</h2>
+          <p class="q">安心できるやり方・慣れた流れを好む</p>
+          <div class="valueRow">
+            <div class="valueLabel">安定</div>
+            <div class="value" id="q5Val">3</div>
+          </div>
+          <input id="q5" type="range" min="0" max="5" step="1" value="3" />
+          <div class="scale"><span>0</span><span>5</span></div>
+
+          <div style="margin-top:14px;">
+            <button class="btn" id="rediagnoseBtn">＋3問込みで再判定する</button>
+          </div>
+        </div>
       </div>
 
       <div class="actions">
         <button class="btn" id="copyBtn">コピー</button>
         <button class="btn secondary" id="resetBtn">やり直す</button>
       </div>
-      <div class="footer" id="copyStatus"></div>
+      <div class="muted" id="copyStatus" style="margin-top:8px;"></div>
     </div>
   </div>
 
   <script>
-    const q1 = document.getElementById('q1');
-    const q2 = document.getElementById('q2');
-    const q1Val = document.getElementById('q1Val');
-    const q2Val = document.getElementById('q2Val');
+    const sliders = ["q1","q2","q3","q4","q5"];
+    sliders.forEach(id => {
+      const slider = document.getElementById(id);
+      const label = document.getElementById(id + "Val");
+      slider.addEventListener("input", () => label.textContent = slider.value);
+    });
+
     const resultCard = document.getElementById('resultCard');
     const typeText = document.getElementById('typeText');
     const structureText = document.getElementById('structureText');
@@ -221,16 +276,11 @@
     const oneLineText = document.getElementById('oneLineText');
     const copyText = document.getElementById('copyText');
     const copyStatus = document.getElementById('copyStatus');
+    const moreQuestions = document.getElementById('moreQuestions');
+    const advancedSummaryBox = document.getElementById('advancedSummaryBox');
+    const advancedSummaryText = document.getElementById('advancedSummaryText');
 
-    function syncValue(slider, label){
-      label.textContent = slider.value;
-    }
-
-    q1.addEventListener('input', ()=>syncValue(q1, q1Val));
-    q2.addEventListener('input', ()=>syncValue(q2, q2Val));
-
-    function diagnose(a, b){
-      // a = 素質、本音 / b = 適応、現実
+    function baseDiagnose(a, b){
       let type = "";
       let structure = "";
       let phenomenon = "";
@@ -240,80 +290,167 @@
         type = "整合ズレ型";
         structure = "本音では納得してから動きたいのに、現実では納得していなくても動いている状態。";
         phenomenon = "優先順位がブレやすい / やる気に波が出やすい / 動いているのに内部では引っかかりが残る。";
-        oneLine = "無理して動いているからブレる。";
+        oneLine = "ブレてるんじゃない、無理してる。";
       } else if (a >= 4 && b <= 2){
         type = "納得重視型";
         structure = "本音でも現実でも、納得が動くための条件になっている状態。";
         phenomenon = "動き出しは遅め / 理解できると強い / ハマると深く続く。";
-        oneLine = "遅いのではなく精度型。";
+        oneLine = "遅いんじゃない、精度を上げてる。";
       } else if (a <= 2 && b >= 4){
         type = "行動優先型";
         structure = "納得へのこだわりは低めで、まず動いてから考える現実対応型。";
         phenomenon = "初動が早い / 後から修正が多い / とりあえず前に進みやすい。";
-        oneLine = "雑ではなくスピード型。";
+        oneLine = "雑なんじゃない、先に進めてる。";
       } else if (a <= 2 && b <= 2){
         type = "流動型";
         structure = "納得への強いこだわりが少なく、状況に応じて軽く動ける状態。";
         phenomenon = "気分や場面で動き方が変わる / 固定ルールに縛られにくい。";
-        oneLine = "軽さが強み。";
+        oneLine = "適当じゃない、軽いだけ。";
       } else {
         const diff = a - b;
         if (diff >= 2){
           type = "納得寄りバランス型";
           structure = "本音の納得重視がやや強く、現実では多少合わせて動いている状態。";
-          phenomenon = "止まりすぎではないが、納得不足だと微妙に消耗しやすい。";
-          oneLine = "動けているけど、内部では理由が欲しい。";
+          phenomenon = "動けてはいるが、納得不足だと内部で消耗しやすい。";
+          oneLine = "動けてるけど、内部では理由が欲しい。";
         } else if (diff <= -2){
           type = "適応寄りバランス型";
           structure = "現実対応がやや強く、多少の違和感があっても進める状態。";
           phenomenon = "周囲や流れには乗れるが、本音の輪郭が薄くなりやすい。";
           oneLine = "進める力はあるが、本音の確認も必要。";
         } else {
-          type = "中間バランス型";
-          structure = "納得重視と現実対応の両方をある程度使っている状態。";
-          phenomenon = "大きな偏りは少ない / 場面によって動き方を変えやすい。";
-          oneLine = "迷いではなく調整。";
+          type = "環境適応型";
+          structure = "納得と行動の両方を使い分けている状態。";
+          phenomenon = "優先順位が変わる / 状況で判断が変わる / 固定より調整に強い。";
+          oneLine = "ブレてるんじゃない、調整してる。";
         }
       }
 
-      const prompt =
-`以下は2問の簡易診断結果です。
+      return { type, structure, phenomenon, oneLine };
+    }
+
+    function advancedInterpretation(q3, q4, q5){
+      const notes = [];
+      const tags = [];
+
+      if (q3 >= 4){
+        notes.push("空気感への感度が高いので、周囲の反応で判断が揺れやすい。");
+        tags.push("空気高め");
+      } else if (q3 <= 1){
+        notes.push("周囲の空気より、自分の基準で判断しやすい。");
+        tags.push("空気低め");
+      }
+
+      if (q4 >= 4){
+        notes.push("成果意識が強く、結果が見えないと焦りやすい。");
+        tags.push("成果高め");
+      } else if (q4 <= 1){
+        notes.push("結果だけに縛られにくく、途中の感覚も見やすい。");
+        tags.push("成果低め");
+      }
+
+      if (q5 >= 4){
+        notes.push("安定志向が強く、慣れた流れや安心感があるほど動きやすい。");
+        tags.push("安定高め");
+      } else if (q5 <= 1){
+        notes.push("変化や試行への抵抗が少なく、新しい流れにも乗りやすい。");
+        tags.push("安定低め");
+      }
+
+      if (notes.length === 0){
+        notes.push("追加の3問では大きな偏りは少なく、2問の結果をそのまま素直に見てよい状態。");
+        tags.push("偏り少なめ");
+      }
+
+      return { notes, tags };
+    }
+
+    function buildPrompt(a, b, base, extra=null){
+      let prompt =
+`以下は5分類ストレス診断の簡易版（2問＋任意3問）の結果です。
 Q1（納得しないと動きたくない）: ${a}
 Q2（納得してなくても、とりあえず動くことが多い）: ${b}
 
 【タイプ】
-${type}
+${base.type}
 
 【構造】
-${structure}
+${base.structure}
 
 【現象】
-${phenomenon}
+${base.phenomenon}
 
 【一言】
-${oneLine}
+${base.oneLine}
+`;
 
+      if (extra){
+        prompt += `
+【追加の3問】
+Q3（周りの反応や空気が気になる）: ${extra.q3}
+Q4（結果が出ないと落ち着かない）: ${extra.q4}
+Q5（安心できるやり方・慣れた流れを好む）: ${extra.q5}
+
+【補足】
+${extra.notes.join(" / ")}
+`;
+      }
+
+      prompt += `
 この結果をもとに、
-「なぜブレるのか」「どうすれば動きやすくなるか」を
+「なぜブレるのか」「何が引っかかりやすいのか」「どうすれば動きやすくなるか」を
 本質 → 構造 → 具体例 → 応用
 で整理してください。`;
 
-      return { type, structure, phenomenon, oneLine, prompt };
+      return prompt;
+    }
+
+    function render(base, prompt, advancedText=""){
+      typeText.textContent = base.type;
+      structureText.textContent = base.structure;
+      phenomenonText.textContent = base.phenomenon;
+      oneLineText.textContent = base.oneLine;
+      copyText.textContent = prompt;
+
+      if (advancedText){
+        advancedSummaryBox.classList.remove("hidden");
+        advancedSummaryText.textContent = advancedText;
+      } else {
+        advancedSummaryBox.classList.add("hidden");
+        advancedSummaryText.textContent = "";
+      }
+
+      copyStatus.textContent = "";
+      resultCard.classList.remove("hidden");
+      resultCard.scrollIntoView({ behavior: 'smooth', block: 'start' });
     }
 
     document.getElementById('diagnoseBtn').addEventListener('click', () => {
-      const a = Number(q1.value);
-      const b = Number(q2.value);
-      const result = diagnose(a, b);
+      const a = Number(document.getElementById("q1").value);
+      const b = Number(document.getElementById("q2").value);
+      const base = baseDiagnose(a, b);
+      const prompt = buildPrompt(a, b, base);
+      render(base, prompt);
+    });
 
-      typeText.textContent = result.type;
-      structureText.textContent = result.structure;
-      phenomenonText.textContent = result.phenomenon;
-      oneLineText.textContent = result.oneLine;
-      copyText.textContent = result.prompt;
-      copyStatus.textContent = "";
-      resultCard.classList.remove('hidden');
-      resultCard.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    document.getElementById('showMoreBtn').addEventListener('click', () => {
+      moreQuestions.classList.remove('hidden');
+      moreQuestions.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    });
+
+    document.getElementById('rediagnoseBtn').addEventListener('click', () => {
+      const a = Number(document.getElementById("q1").value);
+      const b = Number(document.getElementById("q2").value);
+      const q3 = Number(document.getElementById("q3").value);
+      const q4 = Number(document.getElementById("q4").value);
+      const q5 = Number(document.getElementById("q5").value);
+
+      const base = baseDiagnose(a, b);
+      const adv = advancedInterpretation(q3, q4, q5);
+      const advancedText = adv.notes.join(" / ") + "（" + adv.tags.join("・") + "）";
+      const prompt = buildPrompt(a, b, base, { q3, q4, q5, notes: adv.notes });
+
+      render(base, prompt, advancedText);
     });
 
     document.getElementById('copyBtn').addEventListener('click', async () => {
@@ -326,11 +463,13 @@ ${oneLine}
     });
 
     document.getElementById('resetBtn').addEventListener('click', () => {
-      q1.value = 3;
-      q2.value = 3;
-      q1Val.textContent = "3";
-      q2Val.textContent = "3";
-      resultCard.classList.add('hidden');
+      ["q1","q2","q3","q4","q5"].forEach(id => {
+        document.getElementById(id).value = 3;
+        document.getElementById(id + "Val").textContent = "3";
+      });
+      moreQuestions.classList.add("hidden");
+      advancedSummaryBox.classList.add("hidden");
+      resultCard.classList.add("hidden");
       copyStatus.textContent = "";
       window.scrollTo({ top: 0, behavior: 'smooth' });
     });
