@@ -2,477 +2,1032 @@
 <html lang="ja">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>2問＋3問 拡張診断</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <title>5分類ストレス診断 スマホ公開版</title>
   <style>
-    :root{
-      --bg:#f6f7fb;
-      --card:#ffffff;
-      --text:#1f2937;
-      --sub:#6b7280;
-      --line:#e5e7eb;
-      --accent:#111827;
+    :root {
+      --bg: #f5f7fb;
+      --panel: #ffffff;
+      --panel-2: #eef3ff;
+      --text: #182033;
+      --muted: #64708a;
+      --line: #d8e1f2;
+      --accent: #4f7cff;
+      --accent-2: #30c6a8;
+      --danger: #f05d76;
+      --warn: #e1a400;
+      --good: #0e9f6e;
+      --shadow: 0 12px 30px rgba(28, 46, 86, 0.10);
+      --radius: 22px;
+      --radius-sm: 14px;
     }
-    *{box-sizing:border-box}
-    body{
-      margin:0;
-      font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Hiragino Sans","Noto Sans JP",sans-serif;
-      background:var(--bg);
-      color:var(--text);
-      line-height:1.65;
+
+    * { box-sizing: border-box; }
+    html, body { margin: 0; padding: 0; }
+    body {
+      background:
+        radial-gradient(circle at top right, rgba(79,124,255,.12), transparent 22%),
+        radial-gradient(circle at top left, rgba(48,198,168,.09), transparent 18%),
+        var(--bg);
+      color: var(--text);
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Hiragino Sans", "Yu Gothic UI", sans-serif;
+      line-height: 1.6;
     }
-    .wrap{
-      max-width:520px;
-      margin:0 auto;
-      padding:20px 14px 40px;
+    button, input, textarea, select { font: inherit; }
+    .app {
+      max-width: 760px;
+      margin: 0 auto;
+      padding: 14px 14px 96px;
     }
-    .card{
-      background:var(--card);
-      border:1px solid var(--line);
-      border-radius:18px;
-      padding:18px 16px;
-      box-shadow:0 4px 18px rgba(0,0,0,.04);
-      margin-bottom:14px;
+    .screen { display: none; }
+    .screen.active { display: block; }
+    .card {
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      padding: 18px;
+      margin-bottom: 14px;
     }
-    h1{
-      font-size:1.4rem;
-      margin:0 0 8px;
-      line-height:1.35;
+    .hero {
+      padding: 22px 18px;
+      background: linear-gradient(135deg, rgba(79,124,255,.10), rgba(48,198,168,.10));
     }
-    h2{
-      font-size:1rem;
-      margin:0 0 10px;
+    h1, h2, h3, p { margin: 0; }
+    h1 {
+      font-size: clamp(26px, 7vw, 38px);
+      line-height: 1.18;
+      margin-bottom: 10px;
     }
-    .lead{
-      color:var(--sub);
-      font-size:.96rem;
-      margin:0;
+    h2 {
+      font-size: 19px;
+      margin-bottom: 10px;
     }
-    .q{
-      font-size:1.03rem;
-      font-weight:700;
-      margin:0 0 14px;
+    h3 {
+      font-size: 15px;
+      margin-bottom: 8px;
     }
-    .valueRow{
-      display:flex;
-      align-items:center;
-      justify-content:space-between;
-      gap:12px;
-      margin-bottom:8px;
+    .lead { color: var(--muted); }
+    .pill-row {
+      display: flex; flex-wrap: wrap; gap: 8px; margin-top: 12px;
     }
-    .valueLabel{
-      color:var(--sub);
-      font-size:.92rem;
+    .pill {
+      display: inline-flex; align-items: center; gap: 6px;
+      min-height: 32px; padding: 6px 12px; border-radius: 999px;
+      border: 1px solid var(--line); background: rgba(255,255,255,.75);
+      font-size: 13px; color: var(--muted);
     }
-    .value{
-      min-width:42px;
-      text-align:center;
-      font-weight:800;
-      font-size:1.1rem;
-      padding:5px 10px;
-      border-radius:999px;
-      background:#f3f4f6;
+    .grid { display: grid; gap: 12px; }
+    .grid-2 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    .field { display: grid; gap: 7px; }
+    .field label { font-size: 13px; color: var(--muted); }
+    input[type="text"], input[type="date"], textarea, select {
+      width: 100%;
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      background: #fff;
+      color: var(--text);
+      padding: 13px 14px;
+      outline: none;
     }
-    input[type="range"]{
-      width:100%;
-      margin:10px 0 4px;
+    textarea { min-height: 108px; resize: vertical; }
+    .note-box {
+      background: #f8fbff; border: 1px dashed var(--line); border-radius: 16px;
+      padding: 12px 14px; font-size: 14px; color: var(--muted);
     }
-    .scale{
-      display:flex;
-      justify-content:space-between;
-      color:var(--sub);
-      font-size:.78rem;
-      margin-top:4px;
+    .btn-row { display: flex; flex-wrap: wrap; gap: 10px; }
+    .btn {
+      border: none; border-radius: 16px; padding: 14px 16px; min-height: 48px;
+      font-weight: 700; cursor: pointer; transition: transform .08s ease, opacity .15s ease;
     }
-    .btn{
-      width:100%;
-      border:none;
-      border-radius:14px;
-      padding:14px 16px;
-      font-size:1rem;
-      font-weight:700;
-      background:var(--accent);
-      color:#fff;
-      cursor:pointer;
+    .btn:active { transform: scale(.985); }
+    .btn-primary { background: var(--accent); color: #fff; }
+    .btn-secondary { background: #fff; color: var(--text); border: 1px solid var(--line); }
+    .btn-ghost { background: #eef3ff; color: var(--accent); }
+    .btn[disabled] { opacity: .45; cursor: not-allowed; }
+
+    .sticky-top {
+      position: sticky; top: 0; z-index: 15; padding-top: env(safe-area-inset-top);
+      background: linear-gradient(180deg, rgba(245,247,251,.96), rgba(245,247,251,.86), rgba(245,247,251,0));
+      margin: -14px -14px 8px; padding: 14px 14px 6px;
+      backdrop-filter: blur(8px);
     }
-    .btn.secondary{
-      background:#fff;
-      color:var(--text);
-      border:1px solid var(--line);
+    .progress-wrap {
+      background: rgba(255,255,255,.88); border: 1px solid var(--line); border-radius: 18px; padding: 12px 14px;
+      box-shadow: var(--shadow);
     }
-    .btn.ghost{
-      background:#f9fafb;
-      color:var(--text);
-      border:1px solid var(--line);
+    .progress-top {
+      display: flex; justify-content: space-between; gap: 12px; align-items: center; margin-bottom: 10px;
+      font-size: 13px; color: var(--muted);
     }
-    .actions{
-      display:grid;
-      grid-template-columns:1fr 1fr;
-      gap:10px;
-      margin-top:10px;
+    .progress-bar {
+      height: 10px; border-radius: 999px; background: #e9eef9; overflow: hidden;
     }
-    .resultTitle{
-      font-size:1.1rem;
-      font-weight:800;
-      margin:0 0 12px;
+    .progress-fill {
+      height: 100%; width: 0%; background: linear-gradient(90deg, var(--accent), var(--accent-2));
+      border-radius: inherit; transition: width .2s ease;
     }
-    .box{
-      background:#f9fafb;
-      border:1px solid var(--line);
-      border-radius:14px;
-      padding:12px 13px;
-      margin-bottom:10px;
+
+    .q-head {
+      display: flex; justify-content: space-between; gap: 12px; align-items: start; margin-bottom: 12px;
     }
-    .label{
-      font-size:.82rem;
-      color:var(--sub);
-      margin-bottom:4px;
+    .q-number {
+      font-size: 13px; color: var(--muted);
     }
-    .copyArea{
-      white-space:pre-wrap;
-      font-size:.95rem;
+    .q-text {
+      font-size: clamp(20px, 5.5vw, 26px); line-height: 1.4; font-weight: 700; margin-top: 6px;
     }
-    .muted{
-      color:var(--sub);
-      font-size:.86rem;
+    .q-meta {
+      display: flex; flex-wrap: wrap; gap: 8px; margin-top: 12px;
     }
-    .pill{
-      display:inline-block;
-      font-size:.8rem;
-      color:#374151;
-      background:#f3f4f6;
-      border-radius:999px;
-      padding:5px 10px;
-      margin-bottom:10px;
+    .q-badge {
+      display: inline-flex; align-items: center; min-height: 32px;
+      padding: 6px 12px; border-radius: 999px; font-size: 13px;
+      background: #f3f6fd; border: 1px solid var(--line); color: var(--muted);
     }
-    .hidden{display:none}
+    .big-score {
+      min-width: 70px; text-align: center; border-radius: 18px; padding: 10px 12px;
+      background: #f3f6fd; border: 1px solid var(--line);
+    }
+    .big-score .label { font-size: 11px; color: var(--muted); }
+    .big-score .value { font-size: 28px; line-height: 1.1; font-weight: 800; }
+
+    .score-picker {
+      display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); gap: 8px; margin-top: 14px;
+    }
+    .score-btn {
+      border: 1px solid var(--line); background: #fff; color: var(--text); border-radius: 16px;
+      min-height: 56px; font-size: 19px; font-weight: 800; cursor: pointer;
+    }
+    .score-btn small { display: block; font-size: 10px; font-weight: 600; color: var(--muted); }
+    .score-btn.active {
+      background: linear-gradient(180deg, rgba(79,124,255,.12), rgba(48,198,168,.12));
+      border-color: rgba(79,124,255,.45);
+      color: var(--accent);
+      box-shadow: inset 0 0 0 1px rgba(79,124,255,.08);
+    }
+    .score-help {
+      display: flex; justify-content: space-between; gap: 10px; font-size: 12px; color: var(--muted); margin-top: 8px;
+    }
+    .nav-row {
+      display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 16px;
+    }
+    .quick-nav {
+      display: flex; gap: 8px; overflow-x: auto; padding-bottom: 4px; margin-top: 12px;
+      scrollbar-width: thin;
+    }
+    .dot {
+      flex: 0 0 auto; width: 34px; height: 34px; border-radius: 50%; border: 1px solid var(--line);
+      display: grid; place-items: center; font-size: 12px; background: #fff; color: var(--muted); cursor: pointer;
+    }
+    .dot.current { background: var(--accent); color: #fff; border-color: var(--accent); }
+    .dot.answered { background: rgba(48,198,168,.14); color: #197d67; border-color: rgba(48,198,168,.35); }
+    .dot.current.answered { background: linear-gradient(180deg, var(--accent), #6590ff); color: #fff; }
+
+    .stats {
+      display: grid; grid-template-columns: repeat(3, minmax(0,1fr)); gap: 10px;
+    }
+    .stat {
+      background: #f8fbff; border: 1px solid var(--line); border-radius: 16px; padding: 12px;
+    }
+    .stat .k { font-size: 12px; color: var(--muted); }
+    .stat .v { font-size: 22px; font-weight: 800; line-height: 1.2; margin-top: 4px; }
+
+    .category-list { display: grid; gap: 10px; }
+    .cat-card {
+      border: 1px solid var(--line); border-radius: 18px; padding: 14px; background: #fff;
+    }
+    .cat-top {
+      display: flex; justify-content: space-between; gap: 10px; align-items: center; margin-bottom: 8px;
+    }
+    .cat-name { font-weight: 800; font-size: 17px; }
+    .cat-score { font-weight: 800; color: var(--accent); }
+    .mini-bar { height: 10px; background: #edf2fb; border-radius: 999px; overflow: hidden; }
+    .mini-bar > span { display: block; height: 100%; border-radius: inherit; background: linear-gradient(90deg, var(--accent), var(--accent-2)); }
+    .cat-meta { margin-top: 10px; font-size: 13px; color: var(--muted); }
+
+    .summary-chip-wrap { display: flex; flex-wrap: wrap; gap: 8px; }
+    .summary-chip {
+      padding: 8px 12px; border-radius: 999px; background: #f3f6fd; border: 1px solid var(--line); font-size: 13px;
+    }
+
+    .prompt-box, .plain-box {
+      background: #101725; color: #edf3ff; border-radius: 18px; padding: 16px; border: 1px solid #23314f;
+      white-space: pre-wrap; word-break: break-word; font-size: 13px; line-height: 1.7;
+      max-height: 420px; overflow: auto;
+    }
+    .plain-box { background: #fff; color: var(--text); border: 1px solid var(--line); }
+
+    canvas {
+      width: 100%; max-width: 100%; display: block;
+      background: #fff; border: 1px solid var(--line); border-radius: 18px; padding: 10px;
+    }
+    .footer-tools {
+      position: fixed; left: 0; right: 0; bottom: 0; z-index: 20;
+      padding: 10px 14px calc(10px + env(safe-area-inset-bottom));
+      background: linear-gradient(180deg, rgba(245,247,251,0), rgba(245,247,251,.94) 28%, rgba(245,247,251,1));
+      backdrop-filter: blur(10px);
+    }
+    .footer-tools .inner {
+      max-width: 760px; margin: 0 auto; background: rgba(255,255,255,.94);
+      border: 1px solid var(--line); border-radius: 18px; box-shadow: var(--shadow); padding: 10px;
+      display: grid; grid-template-columns: repeat(3, minmax(0,1fr)); gap: 8px;
+    }
+    .footer-tools button { min-height: 46px; }
+
+    @media (max-width: 640px) {
+      .grid-2, .stats { grid-template-columns: 1fr; }
+      .nav-row { grid-template-columns: 1fr 1fr; }
+      .score-picker { gap: 6px; }
+      .score-btn { min-height: 54px; font-size: 18px; }
+      .footer-tools .inner { grid-template-columns: 1fr; }
+    }
   </style>
 </head>
 <body>
-  <div class="wrap">
-    <div class="card">
-      <h1>あなたの「ブレ」の正体、まず2問で出す</h1>
-      <p class="lead">0＝まったく当てはまらない / 5＝かなり当てはまる<br>先に2問で出して、必要ならあとで+3問で精度を上げる。</p>
-    </div>
-
-    <div class="card">
-      <h2>Q1</h2>
-      <p class="q">納得しないと動きたくない</p>
-      <div class="valueRow">
-        <div class="valueLabel">本音・素質寄り</div>
-        <div class="value" id="q1Val">3</div>
-      </div>
-      <input id="q1" type="range" min="0" max="5" step="1" value="3" />
-      <div class="scale"><span>0</span><span>5</span></div>
-    </div>
-
-    <div class="card">
-      <h2>Q2</h2>
-      <p class="q">納得してなくても、とりあえず動くことが多い</p>
-      <div class="valueRow">
-        <div class="valueLabel">現実・適応寄り</div>
-        <div class="value" id="q2Val">3</div>
-      </div>
-      <input id="q2" type="range" min="0" max="5" step="1" value="3" />
-      <div class="scale"><span>0</span><span>5</span></div>
-    </div>
-
-    <div class="card">
-      <button class="btn" id="diagnoseBtn">まず2問で結果を見る</button>
-    </div>
-
-    <div class="card hidden" id="resultCard">
-      <div class="resultTitle">診断結果</div>
-
-      <div class="box">
-        <div class="label">タイプ</div>
-        <div id="typeText"></div>
-      </div>
-
-      <div class="box">
-        <div class="label">構造</div>
-        <div id="structureText"></div>
-      </div>
-
-      <div class="box">
-        <div class="label">現象</div>
-        <div id="phenomenonText"></div>
-      </div>
-
-      <div class="box">
-        <div class="label">一言</div>
-        <div id="oneLineText"></div>
-      </div>
-
-      <div class="box hidden" id="advancedSummaryBox">
-        <div class="label">＋3問で見えた補足</div>
-        <div id="advancedSummaryText"></div>
-      </div>
-
-      <div class="box">
-        <div class="label">AIに貼る文</div>
-        <div class="copyArea" id="copyText"></div>
-      </div>
-
-      <button class="btn ghost" id="showMoreBtn">▶ もっと正確に出す（+3問）</button>
-
-      <div class="hidden" id="moreQuestions">
-        <div class="card" style="margin:14px 0 0; padding:0; box-shadow:none; border:none;">
-          <div class="pill">追加の3問</div>
-
-          <h2>Q3</h2>
-          <p class="q">周りの反応や空気が気になる</p>
-          <div class="valueRow">
-            <div class="valueLabel">空気</div>
-            <div class="value" id="q3Val">3</div>
-          </div>
-          <input id="q3" type="range" min="0" max="5" step="1" value="3" />
-          <div class="scale"><span>0</span><span>5</span></div>
-
-          <h2 style="margin-top:18px;">Q4</h2>
-          <p class="q">結果が出ないと落ち着かない</p>
-          <div class="valueRow">
-            <div class="valueLabel">成果</div>
-            <div class="value" id="q4Val">3</div>
-          </div>
-          <input id="q4" type="range" min="0" max="5" step="1" value="3" />
-          <div class="scale"><span>0</span><span>5</span></div>
-
-          <h2 style="margin-top:18px;">Q5</h2>
-          <p class="q">安心できるやり方・慣れた流れを好む</p>
-          <div class="valueRow">
-            <div class="valueLabel">安定</div>
-            <div class="value" id="q5Val">3</div>
-          </div>
-          <input id="q5" type="range" min="0" max="5" step="1" value="3" />
-          <div class="scale"><span>0</span><span>5</span></div>
-
-          <div style="margin-top:14px;">
-            <button class="btn" id="rediagnoseBtn">＋3問込みで再判定する</button>
-          </div>
+  <div class="app">
+    <section id="screenIntro" class="screen active">
+      <div class="card hero">
+        <h1>5分類ストレス診断</h1>
+        <p class="lead">45問の0〜5回答から、5分類の強さ・素質/適応/自覚・ズレを整理し、AI相談にそのまま貼れる文章まで作る公開版です。</p>
+        <div class="pill-row">
+          <span class="pill">0 = 該当なし</span>
+          <span class="pill">5 = 非常に強い</span>
+          <span class="pill">全45問</span>
+          <span class="pill">スマホ向け1問ずつ表示</span>
         </div>
       </div>
 
-      <div class="actions">
-        <button class="btn" id="copyBtn">コピー</button>
-        <button class="btn secondary" id="resetBtn">やり直す</button>
+      <div class="card">
+        <h2>この診断の位置づけ</h2>
+        <div class="note-box">
+          この診断は、あなたを決めつけるためのものではありません。<br>
+          ストレスは弱さではなく、今強く働いている機能の現れとして扱います。<br>
+          結果は自己理解だけでなく、AI相談・面談・作業配置・振り返りの材料として使えます。
+        </div>
       </div>
-      <div class="muted" id="copyStatus" style="margin-top:8px;"></div>
+
+      <div class="card grid">
+        <div class="field">
+          <label for="userName">名前またはニックネーム</label>
+          <input id="userName" type="text" placeholder="未入力でも可">
+        </div>
+        <div class="grid grid-2">
+          <div class="field">
+            <label for="examDate">日付</label>
+            <input id="examDate" type="date">
+          </div>
+          <div class="field">
+            <label for="genre">相談ジャンル</label>
+            <select id="genre"></select>
+          </div>
+        </div>
+        <div class="field">
+          <label for="stateTemplate">状態テンプレ</label>
+          <select id="stateTemplate"></select>
+        </div>
+        <div class="field">
+          <label for="currentState">今の状態</label>
+          <textarea id="currentState" placeholder="例：何からやるか分からない、動けない、気疲れが強い"></textarea>
+        </div>
+        <div class="field">
+          <label for="desiredState">どうしたい</label>
+          <textarea id="desiredState" placeholder="例：優先順位を整理したい、すぐ動けるようにしたい"></textarea>
+        </div>
+        <div class="field">
+          <label for="note">補足</label>
+          <textarea id="note" placeholder="背景、相手、環境、期限など"></textarea>
+        </div>
+        <div class="btn-row">
+          <button id="startBtn" class="btn btn-primary">診断を始める</button>
+          <button id="jumpResultBtn" class="btn btn-secondary">先に結果画面を見る</button>
+        </div>
+      </div>
+    </section>
+
+    <section id="screenQuestion" class="screen">
+      <div class="sticky-top">
+        <div class="progress-wrap">
+          <div class="progress-top">
+            <strong id="progressLabel">Q1 / 45</strong>
+            <span><span id="answeredCount">0</span> / 45 回答</span>
+          </div>
+          <div class="progress-bar"><div id="progressFill" class="progress-fill"></div></div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="q-head">
+          <div>
+            <div class="q-number" id="qNumber">Q1 / 45</div>
+            <div class="q-text" id="qText">質問</div>
+            <div class="q-meta">
+              <span class="q-badge" id="qCategory">整合</span>
+              <span class="q-badge" id="qState">素質</span>
+            </div>
+          </div>
+          <div class="big-score">
+            <div class="label">回答</div>
+            <div class="value" id="currentScore">0</div>
+          </div>
+        </div>
+
+        <div class="score-picker" id="scorePicker"></div>
+        <div class="score-help">
+          <span>0 = 該当なし</span>
+          <span>5 = 非常に強い</span>
+        </div>
+
+        <div class="nav-row">
+          <button id="prevBtn" class="btn btn-secondary">前へ</button>
+          <button id="nextBtn" class="btn btn-primary">次へ</button>
+        </div>
+
+        <div class="quick-nav" id="quickNav"></div>
+      </div>
+
+      <div class="card">
+        <div class="stats">
+          <div class="stat"><div class="k">平均濃度</div><div class="v" id="avgScore">0.0</div></div>
+          <div class="stat"><div class="k">最高スコア数</div><div class="v" id="maxCount">0</div></div>
+          <div class="stat"><div class="k">未回答</div><div class="v" id="unansweredCount">45</div></div>
+        </div>
+      </div>
+    </section>
+
+    <section id="screenResult" class="screen">
+      <div class="card hero">
+        <h2>診断結果</h2>
+        <p class="lead">5分類の総量だけでなく、素質・適応・自覚の内訳とズレまで見える形にしています。</p>
+      </div>
+
+      <div class="card">
+        <h2>状態要約</h2>
+        <div class="summary-chip-wrap" id="summaryChips"></div>
+        <div class="plain-box" id="stateSummary" style="margin-top:12px;"></div>
+      </div>
+
+      <div class="card">
+        <h2>5分類レーダー</h2>
+        <canvas id="radarCanvas" width="640" height="420"></canvas>
+      </div>
+
+      <div class="card">
+        <h2>5分類バー</h2>
+        <canvas id="barCanvas" width="640" height="380"></canvas>
+      </div>
+
+      <div class="card">
+        <h2>分類ごとの内訳</h2>
+        <div id="categoryList" class="category-list"></div>
+      </div>
+
+      <div class="card">
+        <h2>AIに貼る文</h2>
+        <div class="prompt-box" id="aiPrompt"></div>
+      </div>
+    </section>
+  </div>
+
+  <div class="footer-tools">
+    <div class="inner">
+      <button id="goIntroBtn" class="btn btn-secondary">説明へ</button>
+      <button id="goQuestionBtn" class="btn btn-ghost">質問へ</button>
+      <button id="goResultBtn" class="btn btn-primary">結果へ</button>
+      <button id="copyBtn" class="btn btn-secondary">AI文をコピー</button>
+      <button id="csvBtn" class="btn btn-secondary">CSV保存</button>
+      <button id="resetBtn" class="btn btn-secondary">リセット</button>
     </div>
   </div>
 
   <script>
-    const sliders = ["q1","q2","q3","q4","q5"];
-    sliders.forEach(id => {
-      const slider = document.getElementById(id);
-      const label = document.getElementById(id + "Val");
-      slider.addEventListener("input", () => label.textContent = slider.value);
-    });
+    const QUESTIONS = [
+      { no: 1, text: "理由や仕組みがわかると動きやすい", category: "整合", state: "素質" },
+      { no: 2, text: "矛盾やズレがあると気になりやすい", category: "整合", state: "素質" },
+      { no: 3, text: "納得できないまま進むことに強い違和感がある", category: "整合", state: "素質" },
+      { no: 4, text: "納得できなくても必要なら動ける", category: "整合", state: "適応" },
+      { no: 5, text: "周囲の流れに合わせて一度保留にできる", category: "整合", state: "適応" },
+      { no: 6, text: "細かく気になっても作業を止めず進められる", category: "整合", state: "適応" },
+      { no: 7, text: "自分が納得を重視するタイプだと自覚している", category: "整合", state: "自覚" },
+      { no: 8, text: "考えすぎて止まりやすい場面を把握している", category: "整合", state: "自覚" },
+      { no: 9, text: "納得できない時にどう整えるか自分なりにわかっている", category: "整合", state: "自覚" },
+      { no: 10, text: "周囲の空気や相手の反応を自然と気にしやすい", category: "空気", state: "素質" },
+      { no: 11, text: "人の気分や場の雰囲気の変化に気づきやすい", category: "空気", state: "素質" },
+      { no: 12, text: "相手がどう感じるかを考えて動くことが多い", category: "空気", state: "素質" },
+      { no: 13, text: "周囲に合わせて自分の言い方や行動を調整できる", category: "空気", state: "適応" },
+      { no: 14, text: "場を乱さないように自分を抑えることがある", category: "空気", state: "適応" },
+      { no: 15, text: "相手に合わせることでその場を回そうとすることが多い", category: "空気", state: "適応" },
+      { no: 16, text: "自分が空気に影響されやすいと感じている", category: "空気", state: "自覚" },
+      { no: 17, text: "気を使いすぎて疲れることがあるとわかっている", category: "空気", state: "自覚" },
+      { no: 18, text: "どこまで合わせてどこで線を引くか意識している", category: "空気", state: "自覚" },
+      { no: 19, text: "自分で決められる方が動きやすい", category: "支配", state: "素質" },
+      { no: 20, text: "流れややり方を整えたくなることがある", category: "支配", state: "素質" },
+      { no: 21, text: "人や状況をコントロールしたい感覚が出やすい", category: "支配", state: "素質" },
+      { no: 22, text: "必要な場面では自分が主導して動ける", category: "支配", state: "適応" },
+      { no: 23, text: "曖昧な場面で方向性を示す役に回れる", category: "支配", state: "適応" },
+      { no: 24, text: "周囲を見ながら役割や動きを整理しようとする", category: "支配", state: "適応" },
+      { no: 25, text: "自分が主導権を持ちたがる時があるとわかっている", category: "支配", state: "自覚" },
+      { no: 26, text: "指示したくなる時と任せた方がいい時を意識できる", category: "支配", state: "自覚" },
+      { no: 27, text: "支配的に見えやすい場面を自分で把握している", category: "支配", state: "自覚" },
+      { no: 28, text: "結果が出るかどうかを強く意識しやすい", category: "成果", state: "素質" },
+      { no: 29, text: "無駄が多い流れにストレスを感じやすい", category: "成果", state: "素質" },
+      { no: 30, text: "効率や達成を重視する気持ちが強い", category: "成果", state: "素質" },
+      { no: 31, text: "目的のためにやり方を調整できる", category: "成果", state: "適応" },
+      { no: 32, text: "結果を出すために優先順位を変えられる", category: "成果", state: "適応" },
+      { no: 33, text: "必要なら感情より成果を優先して動ける", category: "成果", state: "適応" },
+      { no: 34, text: "自分が成果や効率を重視しやすいとわかっている", category: "成果", state: "自覚" },
+      { no: 35, text: "結果を急ぎすぎて余裕がなくなる時があると感じる", category: "成果", state: "自覚" },
+      { no: 36, text: "成果を求めるあまり他人や自分に厳しくなりやすいと自覚している", category: "成果", state: "自覚" },
+      { no: 37, text: "安心できる流れや慣れたやり方を選びやすい", category: "安定", state: "素質" },
+      { no: 38, text: "先が見えない状況だと不安になりやすい", category: "安定", state: "素質" },
+      { no: 39, text: "急な変化や予定外のことに負担を感じやすい", category: "安定", state: "素質" },
+      { no: 40, text: "不安があっても決まった手順があれば動ける", category: "安定", state: "適応" },
+      { no: 41, text: "安全そうなやり方を選んで失敗を減らそうとする", category: "安定", state: "適応" },
+      { no: 42, text: "変化があっても少しずつなら慣れていける", category: "安定", state: "適応" },
+      { no: 43, text: "自分が安心感を大事にするタイプだとわかっている", category: "安定", state: "自覚" },
+      { no: 44, text: "不安が強い時に動きが鈍くなりやすいと感じている", category: "安定", state: "自覚" },
+      { no: 45, text: "安定があると力を出しやすいと自覚している", category: "安定", state: "自覚" }
+    ];
 
-    const resultCard = document.getElementById('resultCard');
-    const typeText = document.getElementById('typeText');
-    const structureText = document.getElementById('structureText');
-    const phenomenonText = document.getElementById('phenomenonText');
-    const oneLineText = document.getElementById('oneLineText');
-    const copyText = document.getElementById('copyText');
-    const copyStatus = document.getElementById('copyStatus');
-    const moreQuestions = document.getElementById('moreQuestions');
-    const advancedSummaryBox = document.getElementById('advancedSummaryBox');
-    const advancedSummaryText = document.getElementById('advancedSummaryText');
-
-    function baseDiagnose(a, b){
-      let type = "";
-      let structure = "";
-      let phenomenon = "";
-      let oneLine = "";
-
-      if (a >= 4 && b >= 4){
-        type = "整合ズレ型";
-        structure = "本音では納得してから動きたいのに、現実では納得していなくても動いている状態。";
-        phenomenon = "優先順位がブレやすい / やる気に波が出やすい / 動いているのに内部では引っかかりが残る。";
-        oneLine = "ブレてるんじゃない、無理してる。";
-      } else if (a >= 4 && b <= 2){
-        type = "納得重視型";
-        structure = "本音でも現実でも、納得が動くための条件になっている状態。";
-        phenomenon = "動き出しは遅め / 理解できると強い / ハマると深く続く。";
-        oneLine = "遅いんじゃない、精度を上げてる。";
-      } else if (a <= 2 && b >= 4){
-        type = "行動優先型";
-        structure = "納得へのこだわりは低めで、まず動いてから考える現実対応型。";
-        phenomenon = "初動が早い / 後から修正が多い / とりあえず前に進みやすい。";
-        oneLine = "雑なんじゃない、先に進めてる。";
-      } else if (a <= 2 && b <= 2){
-        type = "流動型";
-        structure = "納得への強いこだわりが少なく、状況に応じて軽く動ける状態。";
-        phenomenon = "気分や場面で動き方が変わる / 固定ルールに縛られにくい。";
-        oneLine = "適当じゃない、軽いだけ。";
-      } else {
-        const diff = a - b;
-        if (diff >= 2){
-          type = "納得寄りバランス型";
-          structure = "本音の納得重視がやや強く、現実では多少合わせて動いている状態。";
-          phenomenon = "動けてはいるが、納得不足だと内部で消耗しやすい。";
-          oneLine = "動けてるけど、内部では理由が欲しい。";
-        } else if (diff <= -2){
-          type = "適応寄りバランス型";
-          structure = "現実対応がやや強く、多少の違和感があっても進める状態。";
-          phenomenon = "周囲や流れには乗れるが、本音の輪郭が薄くなりやすい。";
-          oneLine = "進める力はあるが、本音の確認も必要。";
-        } else {
-          type = "環境適応型";
-          structure = "納得と行動の両方を使い分けている状態。";
-          phenomenon = "優先順位が変わる / 状況で判断が変わる / 固定より調整に強い。";
-          oneLine = "ブレてるんじゃない、調整してる。";
-        }
+    const CATEGORIES = ["整合", "空気", "支配", "成果", "安定"];
+    const TREE = {
+      genres: ["", "仕事 / 作業", "人間関係", "自己理解", "恋愛"],
+      templates: {
+        "仕事 / 作業": ["", "何からやるか分からない", "効率が悪い / 無駄が多い", "納得できず動けない", "疲れるのに止まれない"],
+        "人間関係": ["", "相手の気持ちが分からない", "気を使いすぎる", "言いたいことが言えない", "距離感が分からない"],
+        "自己理解": ["", "自分が何をしたいか分からない", "本音と行動がズレている", "得意不得意が分からない", "考えがまとまらない"],
+        "恋愛": ["", "相手に合わせすぎる", "不安が強い", "言いたいことが言えない", "相手の本音が分からない"]
       }
+    };
 
-      return { type, structure, phenomenon, oneLine };
-    }
+    const STORAGE_KEY = 'stress5_public_mobile_v1';
 
-    function advancedInterpretation(q3, q4, q5){
-      const notes = [];
-      const tags = [];
+    const state = {
+      currentIndex: 0,
+      answers: Array(QUESTIONS.length).fill(null)
+    };
 
-      if (q3 >= 4){
-        notes.push("空気感への感度が高いので、周囲の反応で判断が揺れやすい。");
-        tags.push("空気高め");
-      } else if (q3 <= 1){
-        notes.push("周囲の空気より、自分の基準で判断しやすい。");
-        tags.push("空気低め");
-      }
+    const els = {
+      screens: {
+        intro: document.getElementById('screenIntro'),
+        question: document.getElementById('screenQuestion'),
+        result: document.getElementById('screenResult')
+      },
+      userName: document.getElementById('userName'),
+      examDate: document.getElementById('examDate'),
+      genre: document.getElementById('genre'),
+      stateTemplate: document.getElementById('stateTemplate'),
+      currentState: document.getElementById('currentState'),
+      desiredState: document.getElementById('desiredState'),
+      note: document.getElementById('note'),
+      startBtn: document.getElementById('startBtn'),
+      jumpResultBtn: document.getElementById('jumpResultBtn'),
+      goIntroBtn: document.getElementById('goIntroBtn'),
+      goQuestionBtn: document.getElementById('goQuestionBtn'),
+      goResultBtn: document.getElementById('goResultBtn'),
+      copyBtn: document.getElementById('copyBtn'),
+      csvBtn: document.getElementById('csvBtn'),
+      resetBtn: document.getElementById('resetBtn'),
+      progressLabel: document.getElementById('progressLabel'),
+      progressFill: document.getElementById('progressFill'),
+      answeredCount: document.getElementById('answeredCount'),
+      qNumber: document.getElementById('qNumber'),
+      qText: document.getElementById('qText'),
+      qCategory: document.getElementById('qCategory'),
+      qState: document.getElementById('qState'),
+      currentScore: document.getElementById('currentScore'),
+      scorePicker: document.getElementById('scorePicker'),
+      prevBtn: document.getElementById('prevBtn'),
+      nextBtn: document.getElementById('nextBtn'),
+      quickNav: document.getElementById('quickNav'),
+      avgScore: document.getElementById('avgScore'),
+      maxCount: document.getElementById('maxCount'),
+      unansweredCount: document.getElementById('unansweredCount'),
+      summaryChips: document.getElementById('summaryChips'),
+      stateSummary: document.getElementById('stateSummary'),
+      categoryList: document.getElementById('categoryList'),
+      aiPrompt: document.getElementById('aiPrompt'),
+      radarCanvas: document.getElementById('radarCanvas'),
+      barCanvas: document.getElementById('barCanvas')
+    };
 
-      if (q4 >= 4){
-        notes.push("成果意識が強く、結果が見えないと焦りやすい。");
-        tags.push("成果高め");
-      } else if (q4 <= 1){
-        notes.push("結果だけに縛られにくく、途中の感覚も見やすい。");
-        tags.push("成果低め");
-      }
-
-      if (q5 >= 4){
-        notes.push("安定志向が強く、慣れた流れや安心感があるほど動きやすい。");
-        tags.push("安定高め");
-      } else if (q5 <= 1){
-        notes.push("変化や試行への抵抗が少なく、新しい流れにも乗りやすい。");
-        tags.push("安定低め");
-      }
-
-      if (notes.length === 0){
-        notes.push("追加の3問では大きな偏りは少なく、2問の結果をそのまま素直に見てよい状態。");
-        tags.push("偏り少なめ");
-      }
-
-      return { notes, tags };
-    }
-
-    function buildPrompt(a, b, base, extra=null){
-      let prompt =
-`以下は5分類ストレス診断の簡易版（2問＋任意3問）の結果です。
-Q1（納得しないと動きたくない）: ${a}
-Q2（納得してなくても、とりあえず動くことが多い）: ${b}
-
-【タイプ】
-${base.type}
-
-【構造】
-${base.structure}
-
-【現象】
-${base.phenomenon}
-
-【一言】
-${base.oneLine}
-`;
-
-      if (extra){
-        prompt += `
-【追加の3問】
-Q3（周りの反応や空気が気になる）: ${extra.q3}
-Q4（結果が出ないと落ち着かない）: ${extra.q4}
-Q5（安心できるやり方・慣れた流れを好む）: ${extra.q5}
-
-【補足】
-${extra.notes.join(" / ")}
-`;
-      }
-
-      prompt += `
-この結果をもとに、
-「なぜブレるのか」「何が引っかかりやすいのか」「どうすれば動きやすくなるか」を
-本質 → 構造 → 具体例 → 応用
-で整理してください。`;
-
-      return prompt;
-    }
-
-    function render(base, prompt, advancedText=""){
-      typeText.textContent = base.type;
-      structureText.textContent = base.structure;
-      phenomenonText.textContent = base.phenomenon;
-      oneLineText.textContent = base.oneLine;
-      copyText.textContent = prompt;
-
-      if (advancedText){
-        advancedSummaryBox.classList.remove("hidden");
-        advancedSummaryText.textContent = advancedText;
-      } else {
-        advancedSummaryBox.classList.add("hidden");
-        advancedSummaryText.textContent = "";
-      }
-
-      copyStatus.textContent = "";
-      resultCard.classList.remove("hidden");
-      resultCard.scrollIntoView({ behavior: 'smooth', block: 'start' });
-    }
-
-    document.getElementById('diagnoseBtn').addEventListener('click', () => {
-      const a = Number(document.getElementById("q1").value);
-      const b = Number(document.getElementById("q2").value);
-      const base = baseDiagnose(a, b);
-      const prompt = buildPrompt(a, b, base);
-      render(base, prompt);
-    });
-
-    document.getElementById('showMoreBtn').addEventListener('click', () => {
-      moreQuestions.classList.remove('hidden');
-      moreQuestions.scrollIntoView({ behavior: 'smooth', block: 'start' });
-    });
-
-    document.getElementById('rediagnoseBtn').addEventListener('click', () => {
-      const a = Number(document.getElementById("q1").value);
-      const b = Number(document.getElementById("q2").value);
-      const q3 = Number(document.getElementById("q3").value);
-      const q4 = Number(document.getElementById("q4").value);
-      const q5 = Number(document.getElementById("q5").value);
-
-      const base = baseDiagnose(a, b);
-      const adv = advancedInterpretation(q3, q4, q5);
-      const advancedText = adv.notes.join(" / ") + "（" + adv.tags.join("・") + "）";
-      const prompt = buildPrompt(a, b, base, { q3, q4, q5, notes: adv.notes });
-
-      render(base, prompt, advancedText);
-    });
-
-    document.getElementById('copyBtn').addEventListener('click', async () => {
-      try{
-        await navigator.clipboard.writeText(copyText.textContent);
-        copyStatus.textContent = "コピーしました。";
-      }catch(e){
-        copyStatus.textContent = "コピーに失敗しました。手動で長押しコピーしてください。";
-      }
-    });
-
-    document.getElementById('resetBtn').addEventListener('click', () => {
-      ["q1","q2","q3","q4","q5"].forEach(id => {
-        document.getElementById(id).value = 3;
-        document.getElementById(id + "Val").textContent = "3";
+    function showScreen(name) {
+      Object.entries(els.screens).forEach(([key, el]) => {
+        el.classList.toggle('active', key === name);
       });
-      moreQuestions.classList.add("hidden");
-      advancedSummaryBox.classList.add("hidden");
-      resultCard.classList.add("hidden");
-      copyStatus.textContent = "";
       window.scrollTo({ top: 0, behavior: 'smooth' });
-    });
+    }
+
+    function initGenreOptions() {
+      els.genre.innerHTML = TREE.genres.map(v => `<option value="${v}">${v || '選択してください'}</option>`).join('');
+      updateTemplateOptions();
+    }
+
+    function updateTemplateOptions() {
+      const options = TREE.templates[els.genre.value] || [""];
+      els.stateTemplate.innerHTML = options.map(v => `<option value="${v}">${v || 'テンプレ候補なし'}</option>`).join('');
+    }
+
+    function buildScorePicker() {
+      els.scorePicker.innerHTML = '';
+      for (let i = 0; i <= 5; i += 1) {
+        const btn = document.createElement('button');
+        btn.type = 'button';
+        btn.className = 'score-btn';
+        btn.dataset.value = String(i);
+        btn.innerHTML = `${i}<small>${i === 0 ? 'なし' : i === 5 ? '強い' : ''}</small>`;
+        btn.addEventListener('click', () => {
+          state.answers[state.currentIndex] = i;
+          persist();
+          renderQuestion();
+          updateComputed();
+        });
+        els.scorePicker.appendChild(btn);
+      }
+    }
+
+    function buildQuickNav() {
+      els.quickNav.innerHTML = '';
+      QUESTIONS.forEach((q, idx) => {
+        const btn = document.createElement('button');
+        btn.type = 'button';
+        btn.className = 'dot';
+        btn.textContent = q.no;
+        btn.addEventListener('click', () => {
+          state.currentIndex = idx;
+          persist();
+          renderQuestion();
+        });
+        els.quickNav.appendChild(btn);
+      });
+    }
+
+    function renderQuestion() {
+      const q = QUESTIONS[state.currentIndex];
+      const rawValue = state.answers[state.currentIndex];
+      const value = rawValue ?? 0;
+      els.progressLabel.textContent = `Q${state.currentIndex + 1} / ${QUESTIONS.length}`;
+      els.qNumber.textContent = `Q${q.no} / ${QUESTIONS.length}`;
+      els.qText.textContent = q.text;
+      els.qCategory.textContent = q.category;
+      els.qState.textContent = q.state;
+      els.currentScore.textContent = String(value);
+      els.prevBtn.disabled = state.currentIndex === 0;
+      els.nextBtn.textContent = state.currentIndex === QUESTIONS.length - 1 ? '結果を見る' : '次へ';
+
+      [...els.scorePicker.children].forEach(btn => {
+        btn.classList.toggle('active', Number(btn.dataset.value) === value);
+      });
+
+      [...els.quickNav.children].forEach((dot, idx) => {
+        dot.classList.toggle('current', idx === state.currentIndex);
+        dot.classList.toggle('answered', state.answers[idx] !== null && state.answers[idx] !== undefined);
+      });
+      const currentDot = els.quickNav.children[state.currentIndex];
+      currentDot?.scrollIntoView({ behavior: 'smooth', inline: 'center', block: 'nearest' });
+    }
+
+    function collectMeta() {
+      return {
+        userName: els.userName.value.trim(),
+        examDate: els.examDate.value,
+        genre: els.genre.value,
+        stateTemplate: els.stateTemplate.value,
+        currentState: els.currentState.value.trim(),
+        desiredState: els.desiredState.value.trim(),
+        note: els.note.value.trim()
+      };
+    }
+
+    function collectAnswers() {
+      return QUESTIONS.map((q, idx) => ({ ...q, value: state.answers[idx] === null || state.answers[idx] === undefined ? null : Number(state.answers[idx]) }));
+    }
+
+    function computeResults() {
+      const answers = collectAnswers();
+      const byCategory = Object.fromEntries(CATEGORIES.map(cat => [cat, {
+        total: 0, count: 0, max: 45, 素質: 0, 適応: 0, 自覚: 0, gap: 0, status: '中'
+      }]));
+
+      answers.forEach(a => {
+        const row = byCategory[a.category];
+        const score = a.value ?? 0;
+        row.total += score;
+        row.count += 1;
+        row[a.state] += score;
+      });
+
+      CATEGORIES.forEach(cat => {
+        const row = byCategory[cat];
+        row.rate = row.total / row.max;
+        row.gap = Math.abs(row["素質"] - row["適応"]);
+        row.status = row.total >= 30 ? '高' : row.total <= 20 ? '低' : '中';
+      });
+
+      const highItems = CATEGORIES.filter(cat => byCategory[cat].total >= 30);
+      const lowItems = CATEGORIES.filter(cat => byCategory[cat].total <= 20);
+      const gapItems = CATEGORIES.filter(cat => byCategory[cat].gap >= 10);
+      const mainTrait = CATEGORIES.reduce((a, b) => byCategory[a]["素質"] >= byCategory[b]["素質"] ? a : b);
+      const stressAxis = CATEGORIES.reduce((a, b) => byCategory[a].total >= byCategory[b].total ? a : b);
+      const answeredAnswers = answers.filter(a => a.value !== null);
+      const avg = answeredAnswers.length ? answeredAnswers.reduce((sum, a) => sum + a.value, 0) / answeredAnswers.length : 0;
+      const maxCount = answers.filter(a => a.value === 5).length;
+      const answered = answeredAnswers.length;
+
+      return {
+        answers,
+        byCategory,
+        highItems: highItems.length ? highItems : ['なし'],
+        lowItems: lowItems.length ? lowItems : ['なし'],
+        gapItems: gapItems.length ? gapItems : ['なし'],
+        mainTrait,
+        stressAxis,
+        avg,
+        maxCount,
+        answered
+      };
+    }
+
+    function generateSummary(result) {
+      return [
+        '【状態要約】',
+        `■高い項目：${result.highItems.join('、')}`,
+        `■低い項目：${result.lowItems.join('、')}`,
+        `■ズレ：${result.gapItems.join('、')}`,
+        `■素質主軸：${result.mainTrait}`,
+        `■ストレス軸：${result.stressAxis}`
+      ].join('\n');
+    }
+
+    function generatePrompt(result) {
+      const meta = collectMeta();
+      return [
+        'この情報はすでに整理された分析結果です。再解釈ではなく、この状態を前提に分析してください。',
+        '',
+        '【思考ルール】',
+        '・表面的ではなく構造で説明する',
+        '・原因と結果を分ける',
+        '・メリットとデメリットの二面性で整理する',
+        '・個人→周囲→環境の順で視点を広げる',
+        '',
+        '以下は「5分類ストレス診断」の結果です。',
+        'この診断は、整合・空気・支配・成果・安定の5分類を可視化し、AI相談に渡す材料を作るためのものです。',
+        'この結果は、性格を決めつけるためのものではありません。',
+        '',
+        '【診断結果】',
+        ...CATEGORIES.map(cat => `${cat}：${result.byCategory[cat].total}`),
+        '',
+        '【状態分析】',
+        ...CATEGORIES.map(cat => `${cat}：素質 ${result.byCategory[cat]["素質"]} / 適応 ${result.byCategory[cat]["適応"]} / 自覚 ${result.byCategory[cat]["自覚"]}`),
+        '',
+        generateSummary(result),
+        '',
+        '【相談内容】',
+        `相談ジャンル：${meta.genre}`,
+        `今の状態：${meta.currentState}`,
+        `どうしたい：${meta.desiredState}`,
+        `補足：${meta.note}`,
+        '',
+        '【出力形式】',
+        '① 本質',
+        '② 構造',
+        '③ 具体例',
+        '④ 応用',
+        '⑤ 今日できる行動（3つ）',
+        '',
+        '【条件】',
+        '・抽象と具体を行き来する',
+        '・感情と論理の両面で説明',
+        '・再現性のある提案',
+        '・ストレス原因と対処を含める',
+        '・最も影響の大きいポイントを優先順位付きで示す'
+      ].join('\n');
+    }
+
+    function renderSummary(result) {
+      els.stateSummary.textContent = generateSummary(result);
+      els.aiPrompt.textContent = generatePrompt(result);
+      const chips = [
+        `高い項目：${result.highItems.join('、')}`,
+        `低い項目：${result.lowItems.join('、')}`,
+        `ズレ：${result.gapItems.join('、')}`,
+        `素質主軸：${result.mainTrait}`,
+        `ストレス軸：${result.stressAxis}`
+      ];
+      els.summaryChips.innerHTML = chips.map(text => `<span class="summary-chip">${text}</span>`).join('');
+    }
+
+    function renderCategoryCards(result) {
+      els.categoryList.innerHTML = CATEGORIES.map(cat => {
+        const row = result.byCategory[cat];
+        const pct = Math.round(row.rate * 100);
+        return `
+          <div class="cat-card">
+            <div class="cat-top">
+              <div class="cat-name">${cat}</div>
+              <div class="cat-score">${row.total} / ${row.max}</div>
+            </div>
+            <div class="mini-bar"><span style="width:${pct}%"></span></div>
+            <div class="cat-meta">
+              素質 ${row["素質"]} / 適応 ${row["適応"]} / 自覚 ${row["自覚"]} / ズレ ${row.gap} / 状態 ${row.status}
+            </div>
+          </div>
+        `;
+      }).join('');
+    }
+
+    function drawRadar(result) {
+      const canvas = els.radarCanvas;
+      const ctx = canvas.getContext('2d');
+      const w = canvas.width;
+      const h = canvas.height;
+      ctx.clearRect(0, 0, w, h);
+      const cx = w / 2;
+      const cy = h / 2 + 10;
+      const radius = Math.min(w, h) * 0.33;
+      const levels = 5;
+      const values = CATEGORIES.map(cat => result.byCategory[cat].total / 45);
+
+      ctx.strokeStyle = '#d8e1f2';
+      ctx.lineWidth = 1;
+      for (let level = 1; level <= levels; level++) {
+        const r = radius * (level / levels);
+        ctx.beginPath();
+        CATEGORIES.forEach((_, i) => {
+          const angle = (-Math.PI / 2) + (Math.PI * 2 * i / CATEGORIES.length);
+          const x = cx + Math.cos(angle) * r;
+          const y = cy + Math.sin(angle) * r;
+          if (i === 0) ctx.moveTo(x, y); else ctx.lineTo(x, y);
+        });
+        ctx.closePath();
+        ctx.stroke();
+      }
+
+      CATEGORIES.forEach((cat, i) => {
+        const angle = (-Math.PI / 2) + (Math.PI * 2 * i / CATEGORIES.length);
+        const x = cx + Math.cos(angle) * radius;
+        const y = cy + Math.sin(angle) * radius;
+        ctx.beginPath();
+        ctx.moveTo(cx, cy);
+        ctx.lineTo(x, y);
+        ctx.stroke();
+
+        const lx = cx + Math.cos(angle) * (radius + 26);
+        const ly = cy + Math.sin(angle) * (radius + 26);
+        ctx.fillStyle = '#182033';
+        ctx.font = 'bold 15px sans-serif';
+        ctx.textAlign = lx < cx - 10 ? 'right' : lx > cx + 10 ? 'left' : 'center';
+        ctx.textBaseline = ly < cy - 5 ? 'bottom' : ly > cy + 5 ? 'top' : 'middle';
+        ctx.fillText(cat, lx, ly);
+      });
+
+      ctx.beginPath();
+      values.forEach((value, i) => {
+        const angle = (-Math.PI / 2) + (Math.PI * 2 * i / CATEGORIES.length);
+        const x = cx + Math.cos(angle) * radius * value;
+        const y = cy + Math.sin(angle) * radius * value;
+        if (i === 0) ctx.moveTo(x, y); else ctx.lineTo(x, y);
+      });
+      ctx.closePath();
+      ctx.fillStyle = 'rgba(79,124,255,0.18)';
+      ctx.fill();
+      ctx.strokeStyle = '#4f7cff';
+      ctx.lineWidth = 3;
+      ctx.stroke();
+
+      values.forEach((value, i) => {
+        const angle = (-Math.PI / 2) + (Math.PI * 2 * i / CATEGORIES.length);
+        const x = cx + Math.cos(angle) * radius * value;
+        const y = cy + Math.sin(angle) * radius * value;
+        ctx.beginPath();
+        ctx.arc(x, y, 5, 0, Math.PI * 2);
+        ctx.fillStyle = '#30c6a8';
+        ctx.fill();
+      });
+    }
+
+    function drawBars(result) {
+      const canvas = els.barCanvas;
+      const ctx = canvas.getContext('2d');
+      const w = canvas.width;
+      const h = canvas.height;
+      ctx.clearRect(0, 0, w, h);
+
+      const left = 96;
+      const top = 34;
+      const rowGap = 58;
+      const barH = 18;
+      const maxW = w - left - 50;
+
+      CATEGORIES.forEach((cat, idx) => {
+        const y = top + idx * rowGap;
+        const total = result.byCategory[cat].total;
+        const width = (total / 45) * maxW;
+
+        ctx.fillStyle = '#182033';
+        ctx.font = 'bold 16px sans-serif';
+        ctx.textAlign = 'left';
+        ctx.textBaseline = 'middle';
+        ctx.fillText(cat, 20, y + barH / 2);
+
+        ctx.fillStyle = '#edf2fb';
+        roundRect(ctx, left, y, maxW, barH, 9, true, false);
+        ctx.fillStyle = '#4f7cff';
+        roundRect(ctx, left, y, width, barH, 9, true, false);
+
+        ctx.fillStyle = '#64708a';
+        ctx.font = '13px sans-serif';
+        ctx.fillText(`素質 ${result.byCategory[cat]["素質"]} / 適応 ${result.byCategory[cat]["適応"]} / 自覚 ${result.byCategory[cat]["自覚"]}`, left, y + 34);
+
+        ctx.fillStyle = '#182033';
+        ctx.font = 'bold 14px sans-serif';
+        ctx.textAlign = 'right';
+        ctx.fillText(`${total} / 45`, w - 18, y + barH / 2);
+      });
+    }
+
+    function roundRect(ctx, x, y, width, height, radius, fill, stroke) {
+      if (width <= 0) return;
+      ctx.beginPath();
+      ctx.moveTo(x + radius, y);
+      ctx.arcTo(x + width, y, x + width, y + height, radius);
+      ctx.arcTo(x + width, y + height, x, y + height, radius);
+      ctx.arcTo(x, y + height, x, y, radius);
+      ctx.arcTo(x, y, x + width, y, radius);
+      ctx.closePath();
+      if (fill) ctx.fill();
+      if (stroke) ctx.stroke();
+    }
+
+    function updateStats(result) {
+      const answered = result.answered;
+      const progress = Math.round(answered / QUESTIONS.length * 100);
+      els.answeredCount.textContent = String(answered);
+      els.progressFill.style.width = `${progress}%`;
+      els.avgScore.textContent = result.avg.toFixed(1);
+      els.maxCount.textContent = String(result.maxCount);
+      els.unansweredCount.textContent = String(QUESTIONS.length - answered);
+    }
+
+    function updateComputed() {
+      const result = computeResults();
+      updateStats(result);
+      renderSummary(result);
+      renderCategoryCards(result);
+      drawRadar(result);
+      drawBars(result);
+    }
+
+    function toCSVRow(values) {
+      return values.map(value => {
+        const text = String(value ?? '');
+        return `"${text.replace(/"/g, '""')}"`;
+      }).join(',');
+    }
+
+    function downloadCSV() {
+      const result = computeResults();
+      const meta = collectMeta();
+      const lines = [];
+      lines.push(toCSVRow(['section', 'name', 'value1', 'value2', 'value3', 'value4', 'value5']));
+      lines.push(toCSVRow(['meta', 'name', meta.userName]));
+      lines.push(toCSVRow(['meta', 'date', meta.examDate]));
+      lines.push(toCSVRow(['meta', 'genre', meta.genre]));
+      lines.push(toCSVRow(['meta', 'currentState', meta.currentState]));
+      lines.push(toCSVRow(['meta', 'desiredState', meta.desiredState]));
+      lines.push(toCSVRow(['meta', 'note', meta.note]));
+      CATEGORIES.forEach(cat => {
+        const row = result.byCategory[cat];
+        lines.push(toCSVRow(['result', cat, row.total, row["素質"], row["適応"], row["自覚"], row.gap]));
+      });
+      result.answers.forEach(answer => {
+        lines.push(toCSVRow(['answer', answer.no, answer.category, answer.state, answer.text, answer.value ?? '']));
+      });
+      lines.push(toCSVRow(['summary', 'text', generateSummary(result)]));
+      lines.push(toCSVRow(['prompt', 'text', generatePrompt(result)]));
+
+      const csv = '\uFEFF' + lines.join('\n');
+      const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = '5分類ストレス診断_回答データ.csv';
+      a.click();
+      URL.revokeObjectURL(url);
+    }
+
+    async function copyPrompt() {
+      try {
+        await navigator.clipboard.writeText(els.aiPrompt.textContent || '');
+        const original = els.copyBtn.textContent;
+        els.copyBtn.textContent = 'コピーしました';
+        setTimeout(() => els.copyBtn.textContent = original, 1400);
+      } catch (e) {
+        alert('コピーに失敗しました。ブラウザ設定を確認してください。');
+      }
+    }
+
+    function bindEvents() {
+      els.startBtn.addEventListener('click', () => showScreen('question'));
+      els.jumpResultBtn.addEventListener('click', () => showScreen('result'));
+      els.goIntroBtn.addEventListener('click', () => showScreen('intro'));
+      els.goQuestionBtn.addEventListener('click', () => showScreen('question'));
+      els.goResultBtn.addEventListener('click', () => showScreen('result'));
+      els.copyBtn.addEventListener('click', copyPrompt);
+      els.csvBtn.addEventListener('click', downloadCSV);
+      els.resetBtn.addEventListener('click', () => {
+        if (!confirm('入力内容をすべて消します。よろしいですか？')) return;
+        localStorage.removeItem(STORAGE_KEY);
+        location.reload();
+      });
+
+      els.prevBtn.addEventListener('click', () => {
+        state.currentIndex = Math.max(0, state.currentIndex - 1);
+        persist();
+        renderQuestion();
+      });
+      els.nextBtn.addEventListener('click', () => {
+        if (state.currentIndex === QUESTIONS.length - 1) {
+          showScreen('result');
+          return;
+        }
+        state.currentIndex = Math.min(QUESTIONS.length - 1, state.currentIndex + 1);
+        persist();
+        renderQuestion();
+      });
+
+      [els.userName, els.examDate, els.currentState, els.desiredState, els.note].forEach(el => {
+        el.addEventListener('input', () => {
+          persist();
+          updateComputed();
+        });
+      });
+      els.genre.addEventListener('change', () => {
+        updateTemplateOptions();
+        persist();
+        updateComputed();
+      });
+      els.stateTemplate.addEventListener('change', () => {
+        if (els.stateTemplate.value && !els.currentState.value.trim()) {
+          els.currentState.value = els.stateTemplate.value;
+        }
+        persist();
+        updateComputed();
+      });
+
+      window.addEventListener('resize', () => updateComputed());
+    }
+
+    function persist() {
+      const payload = {
+        currentIndex: state.currentIndex,
+        answers: state.answers,
+        meta: collectMeta()
+      };
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(payload));
+    }
+
+    function restore() {
+      const raw = localStorage.getItem(STORAGE_KEY);
+      if (!raw) return;
+      try {
+        const data = JSON.parse(raw);
+        state.currentIndex = Math.max(0, Math.min(QUESTIONS.length - 1, Number(data.currentIndex) || 0));
+        if (Array.isArray(data.answers) && data.answers.length === QUESTIONS.length) {
+          state.answers = data.answers.map(v => v === null || v === '' || typeof v === 'undefined' ? null : Number(v));
+        }
+        const meta = data.meta || {};
+        els.userName.value = meta.userName || '';
+        els.examDate.value = meta.examDate || '';
+        initGenreOptions();
+        els.genre.value = meta.genre || '';
+        updateTemplateOptions();
+        els.stateTemplate.value = meta.stateTemplate || '';
+        els.currentState.value = meta.currentState || '';
+        els.desiredState.value = meta.desiredState || '';
+        els.note.value = meta.note || '';
+      } catch (e) {
+        console.warn('restore failed', e);
+      }
+    }
+
+    function init() {
+      if (!els.examDate.value) {
+        els.examDate.value = new Date().toISOString().slice(0, 10);
+      }
+      initGenreOptions();
+      buildScorePicker();
+      buildQuickNav();
+      restore();
+      if (!els.examDate.value) {
+        els.examDate.value = new Date().toISOString().slice(0, 10);
+      }
+      bindEvents();
+      renderQuestion();
+      updateComputed();
+    }
+
+    init();
   </script>
 </body>
 </html>
