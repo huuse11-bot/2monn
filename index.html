@@ -219,6 +219,93 @@
     }
     .plain-box { background: #fff; color: var(--text); border: 1px solid var(--line); }
 
+
+    .result-spotlight {
+      position: relative;
+      overflow: hidden;
+      padding: 22px 18px 18px;
+      background: linear-gradient(135deg, rgba(79,124,255,.12), rgba(48,198,168,.10));
+    }
+    .result-spotlight::after{
+      content:'';
+      position:absolute;
+      right:-30px;
+      top:-30px;
+      width:140px;
+      height:140px;
+      border-radius:50%;
+      background: radial-gradient(circle, rgba(79,124,255,.10), rgba(79,124,255,0));
+      pointer-events:none;
+    }
+    .spotlight-kicker{
+      display:inline-flex;
+      align-items:center;
+      gap:8px;
+      min-height:32px;
+      padding:6px 12px;
+      border-radius:999px;
+      background: rgba(255,255,255,.78);
+      border: 1px solid var(--line);
+      font-size: 12px;
+      font-weight: 700;
+      color: var(--muted);
+      margin-bottom: 12px;
+    }
+    .spotlight-praise{
+      font-size: clamp(17px, 4.7vw, 22px);
+      line-height: 1.55;
+      font-weight: 700;
+      margin-bottom: 14px;
+    }
+    .spotlight-label{
+      font-size: clamp(31px, 8.8vw, 46px);
+      line-height: 1.08;
+      font-weight: 900;
+      letter-spacing: .02em;
+      margin: 2px 0 10px;
+    }
+    .spotlight-sub{
+      font-size: 14px;
+      color: var(--muted);
+      margin-bottom: 14px;
+    }
+    .spotlight-warning{
+      background: rgba(255,255,255,.78);
+      border: 1px solid var(--line);
+      border-radius: 18px;
+      padding: 12px 14px;
+      font-size: 14px;
+      line-height: 1.7;
+    }
+    .spotlight-meta{
+      display:flex;
+      flex-wrap:wrap;
+      gap:8px;
+      margin-top: 12px;
+    }
+    .spotlight-chip{
+      display:inline-flex;
+      align-items:center;
+      min-height:32px;
+      padding:6px 12px;
+      border-radius:999px;
+      font-size:12px;
+      border:1px solid var(--line);
+      background:#fff;
+      color:var(--muted);
+    }
+    .spotlight-actions{
+      display:grid;
+      grid-template-columns: 1fr;
+      gap:10px;
+      margin-top:14px;
+    }
+    .spotlight-note{
+      font-size:12px;
+      color:var(--muted);
+      text-align:center;
+    }
+
     canvas {
       width: 100%; max-width: 100%; display: block;
       background: #fff; border: 1px solid var(--line); border-radius: 18px; padding: 10px;
@@ -395,6 +482,23 @@
         <p class="lead">5分類の総量だけでなく、素質・適応・自覚の内訳とズレまで見える形にしています。</p>
       </div>
 
+      <div class="card result-spotlight">
+        <div class="spotlight-kicker">最初に見る結果</div>
+        <div id="spotlightPraise" class="spotlight-praise">あなたは「全体を見て構造から組み立てられる人です」</div>
+        <div id="spotlightLabel" class="spotlight-label">戦略設計者型</div>
+        <div id="spotlightSub" class="spotlight-sub">整合 × 支配 / 素質タイプ</div>
+        <div id="spotlightWarning" class="spotlight-warning">ただし、正しさが強く出すぎて反発を生みやすい傾向があります。</div>
+        <div class="spotlight-meta">
+          <span id="spotlightPair" class="spotlight-chip">主軸：整合 × 支配</span>
+          <span id="spotlightState" class="spotlight-chip">状態：素質</span>
+          <span id="spotlightScores" class="spotlight-chip">合計：0 / 0</span>
+        </div>
+        <div class="spotlight-actions">
+          <button id="spotlightAiBtn" class="btn btn-primary">この結果をAIで深掘りする</button>
+          <div class="spotlight-note">このカードをそのままスクショして共有できます</div>
+        </div>
+      </div>
+
       <div class="card">
         <h2>状態要約</h2>
         <div class="summary-chip-wrap" id="summaryChips"></div>
@@ -499,6 +603,222 @@
 
     const STORAGE_KEY = 'stress5_public_mobile_v1';
 
+    const LABEL_PATTERNS = {
+      '整合|空気|素質': {
+        praise: 'あなたは「論理と感情の間を自然につないでいる人です」',
+        label: '翻訳者タイプ',
+        warning: 'ただし、人に合わせるほど自分の本音や疲れを後回しにしやすい傾向があります。'
+      },
+      '整合|空気|適応': {
+        praise: 'あなたは「場を壊さずに意味を通す調整ができる人です」',
+        label: '静かな調整役',
+        warning: 'ただし、整える役を続けすぎると自分だけ負荷を抱え込みやすい傾向があります。'
+      },
+      '整合|空気|自覚': {
+        praise: 'あなたは「みんなが理解できる形に整えて渡せる人です」',
+        label: '納得設計者型',
+        warning: 'ただし、伝わる形にこだわるほど説明コストが増えて疲れやすい傾向があります。'
+      },
+
+      '整合|支配|素質': {
+        praise: 'あなたは「全体を見て構造から組み立てられる人です」',
+        label: '戦略設計者型',
+        warning: 'ただし、正しさが強く出すぎると相手には圧や反発として伝わりやすい傾向があります。'
+      },
+      '整合|支配|適応': {
+        praise: 'あなたは「必要な場面で流れを整えて前に出られる人です」',
+        label: '論理統率型',
+        warning: 'ただし、筋の通った進め方ほど人の感情の遅れを置いていきやすい傾向があります。'
+      },
+      '整合|支配|自覚': {
+        praise: 'あなたは「前提を見抜いて作り直せる人です」',
+        label: '前提破壊型',
+        warning: 'ただし、改善意識が強いほど相手には否定や批判として受け取られやすい傾向があります。'
+      },
+
+      '整合|成果|素質': {
+        praise: 'あなたは「無駄を見抜いて結果につなげやすい人です」',
+        label: '最適化実行型',
+        warning: 'ただし、効率を優先するほど丁寧さや感情面を飛ばしやすい傾向があります。'
+      },
+      '整合|成果|適応': {
+        praise: 'あなたは「筋を通しながら成果に変えられる人です」',
+        label: '論理達成型',
+        warning: 'ただし、正しいやり方に寄せすぎると柔軟さや遊びが減りやすい傾向があります。'
+      },
+      '整合|成果|自覚': {
+        praise: 'あなたは「精度を上げ続けて結果に変える力がある人です」',
+        label: '精度追求型',
+        warning: 'ただし、完成度を上げようとするほど自分にも周囲にも厳しくなりやすい傾向があります。'
+      },
+
+      '整合|安定|素質': {
+        praise: 'あなたは「崩れにくい形を自然と選べる人です」',
+        label: '安定設計型',
+        warning: 'ただし、整った形を守るほど変化への初動が遅くなりやすい傾向があります。'
+      },
+      '整合|安定|適応': {
+        praise: 'あなたは「無理なく続けられる改善を積み上げられる人です」',
+        label: '継続最適型',
+        warning: 'ただし、安全に寄せすぎると大きな挑戦や突破の機会を逃しやすい傾向があります。'
+      },
+      '整合|安定|自覚': {
+        praise: 'あなたは「長く回る土台を意識して作れる人です」',
+        label: '土台構築型',
+        warning: 'ただし、土台を固める意識が強いほど決断や展開のスピードが落ちやすい傾向があります。'
+      },
+
+      '空気|支配|素質': {
+        praise: 'あなたは「場を読みながら流れを動かせる人です」',
+        label: '空気主導型',
+        warning: 'ただし、場を読んで動かすほど周囲の反応に振り回されやすい傾向があります。'
+      },
+      '空気|支配|適応': {
+        praise: 'あなたは「人の気持ちを見ながら前に進められる人です」',
+        label: '感情統率型',
+        warning: 'ただし、相手に合わせて主導するほど本音の疲れが見えにくくなりやすい傾向があります。'
+      },
+      '空気|支配|自覚': {
+        praise: 'あなたは「状況に合わせて関わり方を切り替えられる人です」',
+        label: '柔軟リーダー型',
+        warning: 'ただし、空気と主導を両立しようとするほど消耗や迷いが増えやすい傾向があります。'
+      },
+
+      '空気|成果|素質': {
+        praise: 'あなたは「人を見ながら結果につなげやすい人です」',
+        label: '共感達成型',
+        warning: 'ただし、人も成果も両方見ようとするほど自分の負担が後回しになりやすい傾向があります。'
+      },
+      '空気|成果|適応': {
+        praise: 'あなたは「衝突を避けながら前に進められる人です」',
+        label: '調和実行型',
+        warning: 'ただし、波風を立てない進め方を優先するほど本当の課題が後ろに残りやすい傾向があります。'
+      },
+      '空気|成果|自覚': {
+        praise: 'あなたは「場の流れを読んで結果を作れる人です」',
+        label: '空気推進型',
+        warning: 'ただし、周囲の空気に反応して動くほど自分の基準がぶれやすい傾向があります。'
+      },
+
+      '空気|安定|素質': {
+        praise: 'あなたは「場の安心感を自然に作れる人です」',
+        label: '安心供給型',
+        warning: 'ただし、人を安心させるほど自分の消耗に気づきにくい傾向があります。'
+      },
+      '空気|安定|適応': {
+        praise: 'あなたは「関係を保ちながら落ち着かせられる人です」',
+        label: '共感維持型',
+        warning: 'ただし、安心と配慮を優先するほど判断や切り替えが遅れやすい傾向があります。'
+      },
+      '空気|安定|自覚': {
+        praise: 'あなたは「どこでもなじみ方を見つけられる人です」',
+        label: '空気適応型',
+        warning: 'ただし、合わせる力が高いほど自分の軸や希望が見えにくくなりやすい傾向があります。'
+      },
+
+      '支配|成果|素質': {
+        praise: 'あなたは「決めて動かし結果まで持っていける人です」',
+        label: '構築リーダー型',
+        warning: 'ただし、前に進める力が強いほど周囲の余力や感情を削りやすい傾向があります。'
+      },
+      '支配|成果|適応': {
+        praise: 'あなたは「必要な場面で主導して前進できる人です」',
+        label: '主導推進型',
+        warning: 'ただし、決断の速さが強みになるほど押しの強さとして伝わりやすい傾向があります。'
+      },
+      '支配|成果|自覚': {
+        praise: 'あなたは「流れを最適化して結果に変えられる人です」',
+        label: '最適化支配型',
+        warning: 'ただし、効率を上げる意識が強いほど人の感情や納得を置き去りにしやすい傾向があります。'
+      },
+
+      '支配|安定|素質': {
+        praise: 'あなたは「崩れにくい形で全体を動かせる人です」',
+        label: '安定統率型',
+        warning: 'ただし、管理が強いほど相手には窮屈さや監視感として伝わりやすい傾向があります。'
+      },
+      '支配|安定|適応': {
+        praise: 'あなたは「リスクを抑えながら進められる人です」',
+        label: '管理最適型',
+        warning: 'ただし、安全に進める意識が強いほど変化や挑戦へのアクセルが弱くなりやすい傾向があります。'
+      },
+      '支配|安定|自覚': {
+        praise: 'あなたは「状況を保ちながら影響を与えられる人です」',
+        label: '制御維持型',
+        warning: 'ただし、保とうとする力が強いほど手放しや委任がしにくくなりやすい傾向があります。'
+      },
+
+      '成果|安定|素質': {
+        praise: 'あなたは「結果につながる選択を無意識に取っている人です」',
+        label: '実行参謀型',
+        warning: 'ただし、成果を優先するほど自分の安定や休息を削りやすい傾向があります。'
+      },
+      '成果|安定|適応': {
+        praise: 'あなたは「結果を出しながら続ける力を持っている人です」',
+        label: '加速維持型',
+        warning: 'ただし、回し続ける意識が強いほど疲労や限界に気づくのが遅れやすい傾向があります。'
+      },
+      '成果|安定|自覚': {
+        praise: 'あなたは「無理しすぎず成果を積み上げる視点を持っている人です」',
+        label: 'バランス達成型',
+        warning: 'ただし、両立を意識するほど中途半端さや迷いを感じやすい傾向があります。'
+      }
+    };
+
+    function getTopTwoCategories(byCategory) {
+      return [...CATEGORIES]
+        .sort((a, b) => {
+          const diff = byCategory[b].total - byCategory[a].total;
+          if (diff !== 0) return diff;
+          return CATEGORIES.indexOf(a) - CATEGORIES.indexOf(b);
+        })
+        .slice(0, 2);
+    }
+
+    function getDominantState(pair, byCategory) {
+      const [a, b] = pair;
+      const totals = ['素質', '適応', '自覚'].map(stateName => ({
+        state: stateName,
+        score: byCategory[a][stateName] + byCategory[b][stateName]
+      }));
+      totals.sort((x, y) => {
+        const diff = y.score - x.score;
+        if (diff !== 0) return diff;
+        return ['素質','適応','自覚'].indexOf(x.state) - ['素質','適応','自覚'].indexOf(y.state);
+      });
+      return totals[0];
+    }
+
+    function getSpotlightResult(result) {
+      const pair = getTopTwoCategories(result.byCategory);
+      const dominant = getDominantState(pair, result.byCategory);
+      const key = `${pair[0]}|${pair[1]}|${dominant.state}`;
+      const pattern = LABEL_PATTERNS[key] || {
+        praise: 'あなたは「強く働いている軸を自分の中に持っている人です」',
+        label: '分析対象型',
+        warning: 'ただし、強みとして働く力ほど過剰になると負担やズレとして出やすい傾向があります。'
+      };
+      return {
+        ...pattern,
+        pair,
+        pairText: `${pair[0]} × ${pair[1]}`,
+        state: dominant.state,
+        pairTotal: result.byCategory[pair[0]].total + result.byCategory[pair[1]].total,
+        stateScore: dominant.score
+      };
+    }
+
+    function renderSpotlight(result) {
+      const spotlight = getSpotlightResult(result);
+      els.spotlightPraise.textContent = spotlight.praise;
+      els.spotlightLabel.textContent = spotlight.label;
+      els.spotlightSub.textContent = `${spotlight.pairText} / ${spotlight.state}タイプ`;
+      els.spotlightWarning.textContent = spotlight.warning;
+      els.spotlightPair.textContent = `主軸：${spotlight.pairText}`;
+      els.spotlightState.textContent = `状態：${spotlight.state}`;
+      els.spotlightScores.textContent = `主軸合計：${spotlight.pairTotal} / 状態値：${spotlight.stateScore}`;
+    }
+
     const state = {
       currentIndex: 0,
       answers: Array(QUESTIONS.length).fill(null)
@@ -546,7 +866,15 @@
       categoryList: document.getElementById('categoryList'),
       aiPrompt: document.getElementById('aiPrompt'),
       radarCanvas: document.getElementById('radarCanvas'),
-      barCanvas: document.getElementById('barCanvas')
+      barCanvas: document.getElementById('barCanvas'),
+      spotlightPraise: document.getElementById('spotlightPraise'),
+      spotlightLabel: document.getElementById('spotlightLabel'),
+      spotlightSub: document.getElementById('spotlightSub'),
+      spotlightWarning: document.getElementById('spotlightWarning'),
+      spotlightPair: document.getElementById('spotlightPair'),
+      spotlightState: document.getElementById('spotlightState'),
+      spotlightScores: document.getElementById('spotlightScores'),
+      spotlightAiBtn: document.getElementById('spotlightAiBtn')
     };
 
     function closeDock() {
@@ -716,6 +1044,10 @@
         '以下は「5分類ストレス診断」の結果です。',
         'この診断は、整合・空気・支配・成果・安定の5分類を可視化し、AI相談に渡す材料を作るためのものです。',
         'この結果は、性格を決めつけるためのものではありません。',
+        '',
+        '【今回のラベル】',
+        `${getSpotlightResult(result).label}（${getSpotlightResult(result).pairText} / ${getSpotlightResult(result).state}）`,
+        getSpotlightResult(result).warning,
         '',
         '【診断結果】',
         ...CATEGORIES.map(cat => `${cat}：${result.byCategory[cat].total}`),
@@ -915,6 +1247,7 @@
     function updateComputed() {
       const result = computeResults();
       updateStats(result);
+      renderSpotlight(result);
       renderSummary(result);
       renderCategoryCards(result);
       drawRadar(result);
@@ -978,6 +1311,10 @@
       els.goIntroBtn.addEventListener('click', () => showScreen('intro'));
       els.goQuestionBtn.addEventListener('click', () => showScreen('question'));
       els.goResultBtn.addEventListener('click', () => showScreen('result'));
+      els.spotlightAiBtn.addEventListener('click', () => {
+        showScreen('result');
+        document.getElementById('aiPrompt').scrollIntoView({ behavior: 'smooth', block: 'start' });
+      });
       els.copyBtn.addEventListener('click', copyPrompt);
       els.csvBtn.addEventListener('click', downloadCSV);
       els.resetBtn.addEventListener('click', () => {
