@@ -820,10 +820,10 @@
     }
 
     const state = {
-      currentIndex: 0,
-      answers: Array(QUESTIONS.length).fill(null)
-    };
-
+  currentIndex: 0,
+  answers: Array(QUESTIONS.length).fill(null),
+  isSaving: false // ←追加
+};
     const els = {
       screens: {
         intro: document.getElementById('screenIntro'),
@@ -1370,11 +1370,30 @@ function getSessionId() {
         renderQuestion();
       });
     els.nextBtn.addEventListener('click', async () => {
-
   if (state.currentIndex === QUESTIONS.length - 1) {
-    console.log('最終問題到達'); // ←デバッグ用
-    await saveDiagnosis();
-    showScreen('result');
+
+    // 二重送信防止
+    if (state.isSaving) return;
+    state.isSaving = true;
+
+    // UIロック
+    els.nextBtn.disabled = true;
+    const originalText = els.nextBtn.textContent;
+    els.nextBtn.textContent = '保存中...';
+
+    try {
+      console.log('最終問題到達');
+      await saveDiagnosis();
+      showScreen('result');
+    } catch (e) {
+      console.error('保存失敗', e);
+      alert('保存に失敗しました');
+    } finally {
+      state.isSaving = false;
+      els.nextBtn.disabled = false;
+      els.nextBtn.textContent = originalText;
+    }
+
     return;
   }
 
