@@ -1304,7 +1304,48 @@
         alert('コピーに失敗しました。ブラウザ設定を確認してください。');
       }
     }
+const GAS_URL = 'https://script.google.com/macros/s/AKfycbxIwz9VQW4E5a_fUiefGfOs_VwkQxPk85ogQ--dljsCvTTGw8CR0Go70NGET5tETk6n-A/exec';
 
+async function saveDiagnosis() {
+  const meta = collectMeta();
+  const answers = collectAnswers();
+  const result = computeResults();
+
+  const payload = {
+    user_name: meta.userName || '',
+    category: meta.genre || '',
+    current_state: meta.currentState || '',
+    goal: meta.desiredState || '',
+    note: meta.note || '',
+    answers_json: answers,
+    result_scores: result.byCategory,
+    result_summary: generateSummary(result),
+    session_id: getSessionId(),
+    version: 'v1'
+  };
+
+  try {
+    await fetch(GAS_URL, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'text/plain;charset=utf-8'
+      },
+      body: JSON.stringify(payload)
+    });
+    console.log('保存成功');
+  } catch (e) {
+    console.error('保存失敗', e);
+  }
+}
+
+function getSessionId() {
+  let sessionId = localStorage.getItem('stress5_session_id');
+  if (!sessionId) {
+    sessionId = 'session_' + Date.now() + '_' + Math.random().toString(36).slice(2, 8);
+    localStorage.setItem('stress5_session_id', sessionId);
+  }
+  return sessionId;
+}
     function bindEvents() {
       els.startBtn.addEventListener('click', () => showScreen('question'));
       els.jumpResultBtn.addEventListener('click', () => showScreen('result'));
@@ -1328,15 +1369,21 @@
         persist();
         renderQuestion();
       });
-      els.nextBtn.addEventListener('click', () => {
-        if (state.currentIndex === QUESTIONS.length - 1) {
-          showScreen('result');
-          return;
-        }
-        state.currentIndex = Math.min(QUESTIONS.length - 1, state.currentIndex + 1);
-        persist();
-        renderQuestion();
-      });
+    els.nextBtn.addEventListener('click', async () => {
+
+  if (state.currentIndex === QUESTIONS.length - 1) {
+    console.log('最終問題到達'); // ←デバッグ用
+    await saveDiagnosis();
+    showScreen('result');
+    return;
+  }
+
+  state.currentIndex = Math.min(QUESTIONS.length - 1, state.currentIndex + 1);
+  persist();
+  renderQuestion();
+});
+         
+
 
       [els.userName, els.examDate, els.currentState, els.desiredState, els.note].forEach(el => {
         el.addEventListener('input', () => {
